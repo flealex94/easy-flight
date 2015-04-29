@@ -6,7 +6,7 @@ struct picker {
 	void(*functii[3])(char*);
 	int getPoz(char* com, char** comenzi){
 		int poz = 0;
-		while (strcpy(com, comenzi[poz]) != 0)
+		while (strcmp(com, comenzi[poz]) != 0)
 			poz++;
 		return poz;
 	}
@@ -17,11 +17,12 @@ struct picker {
 void someFunk(char* somestring){
 	printf("%s", somestring);
 }
+
 int main(){
 	picker.comenzi[0] = new char[7];
 	strcpy(picker.comenzi[0], "asdf");
 	picker.functii[0] = someFunk;
-	picker.getFunc("asdf")("omg merge!");
-
+	void (*fptr)(char*) = picker.getFunc("asdf");
+	fptr("omg merge!");
 	return 0;
 }
