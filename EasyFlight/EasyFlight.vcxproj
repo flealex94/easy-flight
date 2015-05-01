@@ -11,7 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{B722D419-BEC8-4D16-8633-48986B5564EC}</ProjectGuid>
+    <ProjectGuid>{C3AE1C8D-CAF2-4B95-BE1C-945F006537FF}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>EasyFlight</RootNamespace>
   </PropertyGroup>
@@ -76,7 +76,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="interpretare.cpp" />
+    <ClCompile Include="..\interpretare.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
