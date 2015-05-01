@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <malloc.h>
+#include <ctype.h>
+
 struct picker {
 	char* comenzi[25];
 	void(*functii[26])(char*);
@@ -25,10 +27,10 @@ void otherFunk(char* somestring){
 void theFunk(char* somestring){
 	printf("theFunk: %s\n", somestring);
 }
+
 void notFound(char* somestring){
 	printf("404: nu exista functia!\n");
 }
-
 void initPicker(){ //aici se initializeaza pickerul cu comenzi si functiile aferente
 	for (int i = 0; i < 25; i++){
 		picker.comenzi[i] = nullptr; //(char*)malloc(7);
@@ -50,12 +52,20 @@ void initPicker(){ //aici se initializeaza pickerul cu comenzi si functiile afer
 	//pe masura ce vor fi gata, trebuie adaugate functiile!
 
 }
+char* upcase(char* string){
+	char* upcase = (char*)malloc(strlen(string) + 1);
+	char* ptr = upcase;
+	while (*string)
+		*(ptr++) = toupper(*(string++));
+	*ptr = '\0';
+	return upcase;
+}
  //interpretator de comenzi
 void interp(char* comLine){
 	//primeste un linia cu intreaga comanda ca si string
 	char* aux=(char*)malloc(strlen(comLine)+1);strcpy(aux, comLine); 
 	//concateneaza numele comenzii si cel al modulului pentru a putea cauta functia 
-	char* com = strtok(aux, " \t"); aux = strtok(nullptr, " \t");
+	char* com = upcase(strtok(aux, " \t")); aux = upcase(strtok(nullptr, " \t"));
 	strcat(com, aux); 
 	char* data = strtok(nullptr,""); //ce mai ramane din string reprezinta date de intrare pentru functie
 	picker.getFunk(com)(data);
@@ -63,8 +73,7 @@ void interp(char* comLine){
 
 int main(){
 	initPicker();
-	interp("QW		 ER asdf");
-	//interp("o functie care nu exista mesaj test");
 	
+	interp("qw er OMG");
 	return 0;
 }
