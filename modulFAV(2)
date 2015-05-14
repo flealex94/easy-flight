@@ -1,0 +1,260 @@
+#include "stdio.h"
+#include "string.h"
+#include "malloc.h"
+
+struct modulFAV
+{
+	char* idAeronava;
+	enum { PAS, CAR }tipAero;
+	short int nrLocuri;
+	double greutateMaxima;
+};
+
+struct NodLista
+{
+	modulFAV* infoUtil;
+	NodLista* next;
+	NodLista* prev;
+};
+
+NodLista* modificareAeronava(NodLista*& lista, char* idAeronava)
+{
+
+	if (strcmp(lista->infoUtil->idAeronava, idAeronava) == 0)
+	{
+		printf("\nCe vrei sa modifici?\n");
+		printf("1.Id-ul aeronavei\n");
+		printf("2.Numar de locuri\n");
+		printf("3.Greutatea maxima\n");
+		printf("4.Tipul aeronavei\n");
+		int ad;
+		printf("\nIntrodu cifra corespunzatoare alegerii:");
+		scanf("%d", &ad);
+
+		switch (ad)
+		{
+		case 1:{free(lista->infoUtil->idAeronava);
+			printf("\nIntroduceti noul id al aeronavei:");
+			char temp[100];
+			scanf("%s", &temp);
+			lista->infoUtil->idAeronava = (char*)malloc(strlen(temp) + 1);
+			strcpy(lista->infoUtil->idAeronava, temp); } break;
+
+		case 2:{
+				   printf("\nIntroduceti noul numar de locuri:");
+				   int nr;
+				   scanf("%d", &nr);
+				   lista->infoUtil->nrLocuri = nr; }break;
+		case 3:{
+				   printf("\nIntroduceti noua greutate maxima:");
+				   int n;
+				   scanf("%d", &n);
+				   lista->infoUtil->greutateMaxima = n;
+
+		}break;
+		case 4:{
+				   if (lista->infoUtil->tipAero == 1)
+				   {
+					   lista->infoUtil->tipAero = lista->infoUtil->PAS;
+				   }
+				   else if (lista->infoUtil->tipAero == 0)
+				   {
+					   lista->infoUtil->tipAero == lista->infoUtil->CAR;
+				   }
+		}
+
+
+		}
+
+
+	}
+	else
+		printf("\nNu exista aceasta aeronava");
+	return lista;
+}
+
+
+NodLista* inserare(NodLista* lista, modulFAV* mod)
+{
+	NodLista* nou = (NodLista*)malloc(sizeof(NodLista));
+	if (lista == NULL)
+	{
+		nou->infoUtil = mod;
+		nou->next =NULL;
+		nou->prev = NULL;
+		return nou;
+
+	}
+
+	NodLista* p = lista;
+	while (p->next != lista)
+		p = p->next;
+	nou->infoUtil = mod;
+	p->next = nou;
+	nou->prev = p;
+	nou->next = lista;
+	lista->prev = nou;
+	return lista;
+
+
+}
+
+NodLista* inserareInceput(NodLista*&  lista, modulFAV* mod)
+{
+	NodLista* nou = nullptr;
+	nou = (NodLista*)malloc(sizeof(NodLista));
+	nou->infoUtil = mod;
+	nou->next = lista;
+	nou->prev = NULL;
+	if (lista == NULL)
+	{
+		lista = nou;
+	}
+
+	else
+	{
+		nou->next = lista;
+		lista->prev = nou;
+		lista = nou;
+	}
+	return lista;
+
+}
+
+
+NodLista* cauta(NodLista* cap, char* inf)
+{
+	while ( (cap->infoUtil->idAeronava, inf)!=0)
+		cap = cap->next;
+
+	return cap;
+}
+
+NodLista* cautareElement(NodLista* lista, char* info)
+{
+	
+		if (lista != NULL&&strcmp(lista->infoUtil->idAeronava, info) != 0)
+			lista = lista->next;
+		else printf("\n  %s %lf %i %d\n", lista->infoUtil->idAeronava, lista->infoUtil->greutateMaxima, lista->infoUtil->tipAero, lista->infoUtil->nrLocuri);
+	
+	return lista;
+}
+
+void parcurgere(NodLista* lista)
+{
+	while (lista)
+	{
+		printf(" %s %lf %i %d\n", lista->infoUtil->idAeronava, lista->infoUtil->greutateMaxima, lista->infoUtil->tipAero, lista->infoUtil->nrLocuri);
+		lista = lista->next;
+	}
+
+}
+
+void stergereElementInterior(NodLista* lista)
+{
+	lista->prev->next = lista->next;
+	lista->next->prev = lista->prev;
+	// si il stergem
+	free(lista);
+}
+
+void StergereElement(NodLista*& lista, char* poz)
+{
+	if (lista){
+		//aici stergem primul nod(capul) care contine cheia de stergere
+		if (strcmp(lista->infoUtil->idAeronava, poz) == 0)
+		{
+			NodLista* tmp = lista;
+			lista = tmp->next;
+			lista->prev = NULL;
+
+			free(tmp);
+		}
+		//aici cautam alte noduri care ar putea avea aceeasi cheie
+		NodLista* cap = lista;
+		while (cap->next && (strcmp(cap->infoUtil->idAeronava, poz) != 0))
+		cap = cap->next;
+		if (cap->next)
+		{
+		NodLista* tmp = cap;
+		cap->prev->next=cap->next;
+		cap->next->prev=cap->prev;
+		free(tmp);
+		}
+		else
+		{
+
+			NodLista* tmp = cap;
+			cap->prev->next = cap->next;
+			cap->next->prev = cap->prev;
+
+			free(tmp);
+		}
+	
+		
+	}
+
+	
+}
+
+void citireFisier(FILE* file,NodLista* lista)
+{
+
+	if (!file)
+	{
+		printf("Nu se poate deschide fisierul!");
+
+	}
+	else
+	{
+
+		modulFAV* fav = NULL;
+		
+		char buff[100];
+		fscanf(file, "%s", buff);
+		while (!feof(file))
+		{
+			fav = (modulFAV*)malloc(sizeof(modulFAV));
+			fav->idAeronava = (char*)malloc(sizeof(char)*(strlen(buff) + 1));
+			strcpy(fav->idAeronava, buff);
+			int tip = 0;
+			fscanf(file, "%d", &tip);
+			switch (tip)
+			{
+			case 0:fav->tipAero = fav->PAS; break;
+			case 1:fav->tipAero = fav->CAR; break;
+			}
+			fscanf(file, "%d", &fav->nrLocuri);
+			fscanf(file, "%lf", &fav->greutateMaxima);
+			//NodLista* nod= creareNod(fav);
+			//inserareInceput(l, fav);
+			lista=inserareInceput(lista, fav);
+			//lista=inserare(lista, fav);
+
+			//lista= inserareNod(lista, nod);
+			//inserare_inceput(l, nod);
+
+
+			fscanf(file, "%s", buff);
+
+		}
+		parcurgere(lista);
+		StergereElement(lista,"aeronava2");
+		printf("-------------\n");
+		parcurgere(lista);
+		//lista=cautareElement(lista, "aeronava3");
+		//lista = modificareAeronava(lista, "aeronava4");
+		//parcurgere(lista);
+
+	}
+
+}
+
+void main()
+
+{
+	NodLista* lista = NULL;
+	FILE* file;
+	file = fopen("flaero.txt", "r");;
+	citireFisier(file,lista);
+}
