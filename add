@@ -1,0 +1,21 @@
+void addFAV(NodLista* lista)
+{
+	modulFAV* mod = (modulFAV*)malloc(sizeof(modulFAV));
+	char id[100];
+	printf("\nIntroduceti datele pentru o noua flota de aeronave.\n");
+	printf("ID aeronava:");
+	scanf("%s", id);
+	mod->idAeronava = (char*)malloc(sizeof(char)*(strlen(id) + 1));
+	strcpy(mod->idAeronava, id);
+	printf("Nr locuri:"); scanf("%d", &mod->nrLocuri);
+	printf("Greutate maxima:"); scanf("%lf", &mod->greutateMaxima);
+	printf("Tip aeronava PAS/CAR:"); scanf("%d", &mod->tipAero);
+	if (mod->tipAero != 0 || mod->tipAero != 0) {
+		printf("\nNu se accepta decat valoarea 0 sau 1! Reintroduceti!\n");
+		printf("Tip aeronava PAS/CAR:"); scanf("%d", &mod->tipAero);
+	}
+	if (inserareInceput(lista, mod)) printf("\nInserarea s-a efectuat cu succes!\n");
+	else printf("\nNu s-a putut insera!\n");
+	
+	parcurgere(lista);
+}
