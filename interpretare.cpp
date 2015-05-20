@@ -60,6 +60,11 @@
 //	*ptr = '\0';
 //	return upcase;
 //}
+//char* copiaza(char* string) {
+//	char* nou = (char*)malloc(sizeof(char)*(strlen(string) + 1));
+//	strcpy(nou, string);
+//	return nou;
+//}
 // //interpretator de comenzi
 //void interp(char* comline){
 //	//primeste un linia cu intreaga comanda ca si string
