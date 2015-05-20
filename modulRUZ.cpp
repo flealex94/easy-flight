@@ -145,31 +145,24 @@ NodRUZ* updateRUZ(char* idZbor,char* Date)
 		id = strtok(da, s);
 		lista->info->idAvion = atoi(id);
 		while (id != NULL){
-			
-			printf("%d ", lista->info->idAvion);
 			id = strtok(NULL, " ");
 			free(lista->info->oraPlecare);
 			lista->info->oraPlecare = (char*)malloc(sizeof(char)*(strlen(id) + 1));
 			strcpy(lista->info->oraPlecare, id);
-			printf("%s ", lista->info->oraPlecare);
 			id = strtok(NULL, " ");
 			free(lista->info->oraSosire);
 			lista->info->oraSosire = (char*)malloc(sizeof(char)*(strlen(id) + 1));
 			strcpy(lista->info->oraSosire, id);
-			printf("%s ", lista->info->oraSosire);
 			id = strtok(NULL, " ");
 			free(lista->info->orasPlecare);
 			lista->info->orasPlecare = (char*)malloc(sizeof(char)*(strlen(id) + 1));
 			strcpy(lista->info->orasPlecare, id);
-			printf("%s ", lista->info->orasPlecare);
 			id = strtok(NULL, " ");
 			free(lista->info->orasSosire);
 			lista->info->orasSosire = (char*)malloc(sizeof(char)*(strlen(id) + 1));
 			strcpy(lista->info->orasSosire, id);
-			printf("%s ", lista->info->orasSosire);
 			id = strtok(NULL, " ");
 			lista->info->costuriTotaleRuta = atof(id);
-			printf("%f ", lista->info->costuriTotaleRuta);
 			id = strtok(NULL, " ");
 
 		}
