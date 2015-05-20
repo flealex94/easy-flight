@@ -1,8 +1,10 @@
 #include "string.h"
 #include "malloc.h"
 #include "stdio.h"
+#include "stdlib.h"
 
-struct linieRUZ {
+struct linieRUZ
+{
 	char* idZbor;
 	int idAvion;
 	char* oraPlecare;
@@ -12,18 +14,24 @@ struct linieRUZ {
 	float  costuriTotaleRuta;
 };
 
-struct NodRUZ {
+struct NodRUZ
+{
 	linieRUZ* info;
 	NodRUZ* next;
 };
 
-struct HashRUZ {
+struct HashRUZ
+{
 	(NodRUZ*)* listaRUZ;
 	int dim;
 };
 
+HashRUZ hashtable;
+NodRUZ* nod = nullptr;
+
 linieRUZ* creareRUZ(char* idZbor, int idAvion, char* oraPlecare, char* oraSosire, char* orasPlecare,
-					char* orasSosire, float costuriTotaleRuta) {
+	char* orasSosire, float costuriTotaleRuta)
+{
 	linieRUZ* ruz = (linieRUZ*)malloc(sizeof(linieRUZ));
 	ruz->idZbor = (char*)malloc(sizeof(char)*(strlen(idZbor) + 1));
 	strcpy(ruz->idZbor, idZbor);
@@ -41,40 +49,49 @@ linieRUZ* creareRUZ(char* idZbor, int idAvion, char* oraPlecare, char* oraSosire
 	return ruz;
 }
 
-NodRUZ* creareNodRUZ(linieRUZ* mod) {
+NodRUZ* creareNod(linieRUZ* mod)
+{
 	NodRUZ* nou = (NodRUZ*)malloc(sizeof(NodRUZ));
 	nou->info = mod;
-	nou->next = NULL;
+	nou->next = nullptr;
 	return nou;
 }
 
-void inserareNodRUZ(NodRUZ** lista, NodRUZ* nod) {
+void inserareNodRUZ(NodRUZ** lista, NodRUZ* nod)
+{
 	NodRUZ* tempo = *lista;
-	if (!tempo) {
+	if (!tempo)
+	{
 		*lista = nod;
-	} else {
+	}
+	else
+	{
 		while (tempo->next)
-			tempo = tempo->next;
+		tempo = tempo->next;
 		tempo->next = nod;
 	}
 }
 
-HashRUZ alocaMemorieRUZ() {
+HashRUZ alocaMemorieRUZ()
+{
 	HashRUZ ht;
 	ht.dim = 20;
 	ht.listaRUZ = (NodRUZ**)malloc(sizeof(NodRUZ*)*ht.dim);
-	for (int i = 0; i < ht.dim; i++) {
-		ht.listaRUZ[i] = NULL;
+	for (int i = 0; i < ht.dim; i++)
+	{
+		ht.listaRUZ[i] = nullptr;
 	}
 	return ht;
 
 }
 
-int functieHashRUZ(char* idZbor, int dim) {
+int functieHashRUZ(char* idZbor, int dim)
+{
 	return idZbor[0] % dim;
 }
 
-void inserareRUZ(HashRUZ ht, NodRUZ* nod) {
+void inserareRUZ(HashRUZ ht, NodRUZ* nod)
+{
 	//aici determinam pozitia in tabela de dispersie
 	int poz = functieHashRUZ(nod->info->idZbor, ht.dim);
 	NodRUZ* lista = ht.listaRUZ[poz];
@@ -84,103 +101,82 @@ void inserareRUZ(HashRUZ ht, NodRUZ* nod) {
 
 }
 
-void afisareLinieRUZ(linieRUZ* ruz) {
-	if (ruz) {
+void afisareLinieRUZ(linieRUZ* ruz)
+{
+	if (ruz){
 		printf(" %s %d %s %s %s %s %f\n", ruz->idZbor, ruz->idAvion, ruz->oraPlecare, ruz->oraSosire,
-			   ruz->orasPlecare, ruz->orasSosire, ruz->costuriTotaleRuta);
-	} else printf("\nLista goala!");
+			ruz->orasPlecare, ruz->orasSosire, ruz->costuriTotaleRuta);
+	}
+	else printf("\nLista goala!");
 }
 
-void afisareRUZ(HashRUZ hashtable) {
-	if (hashtable.listaRUZ) {
-		for (int i = 0; i < hashtable.dim; i++) {
+void afisareRUZ(HashRUZ hashtable)
+{
+	if (hashtable.listaRUZ)
+	{
+		for (int i = 0; i < hashtable.dim; i++)
+		{
 			NodRUZ* ruz = hashtable.listaRUZ[i];
-			while (ruz) {
+			while (ruz)
+			{
 				afisareLinieRUZ(ruz->info);
 				ruz = ruz->next;
 			}
 		}
-	} else printf("\nNu exista nicio ruta de zbor!");
+	}
+	else printf("\nNu exista nicio ruta de zbor!");
 }
 
 
-NodRUZ* updateRUZ(HashRUZ ht, char* idZbor) {
-
-	int poz = functieHashRUZ(idZbor, ht.dim);
-	NodRUZ* lista = ht.listaRUZ[poz];
+NodRUZ* updateRUZ(char* idZbor,char* Date)
+{
+	//Punerea validarilor!
+	int poz = functieHashRUZ(idZbor, hashtable.dim);
+	NodRUZ* lista = hashtable.listaRUZ[poz];
 	while (lista->next && (strcmp(lista->info->idZbor, idZbor) != 0))
 		lista = lista->next;
-	if (strcmp(lista->info->idZbor, idZbor) == 0) {
-		printf("\nCe vrei sa modifici?\n");
-		printf("1.Id-ul zborului\n");
-		printf("2.Id-ul avionului\n");
-		printf("3.Ora de plecare\n");
-		printf("4.Ora de sosire\n");
-		printf("5.Orasul de plecare\n");
-		printf("6.Orasul de sosire\n");
-		printf("7.Costurile total/ruta");
-
-
-		int ad;
-		printf("\nIntrodu cifra corespunzatoare alegerii:");
-		scanf("%d", &ad);
-
-		switch (ad) {
-			case 1:
-			{
-				free(lista->info->idZbor);
-				printf("\nIntroduceti noul id al zborului:");
-				char temp[100];
-				scanf("%s", &temp);
-				lista->info->idZbor = (char*)malloc(strlen(temp) + 1);
-				strcpy(lista->info->idZbor, temp);
-
-			}break;
-
-			case 2:{ printf("\nIntroduceti noul id al avionului:");
-				int nr;
-				scanf("%d", &nr);
-				lista->info->idAvion = nr; }break;
-
-			case 3:{
-				free(lista->info->oraPlecare);
-				printf("\nIntroduceti noua ora de plecare:");
-				char temp[100];
-				scanf("%s", &temp);
-				lista->info->oraPlecare = (char*)malloc(strlen(temp) + 1);
-				strcpy(lista->info->oraPlecare, temp); }break;
-
-			case 4:{free(lista->info->oraSosire);
-				printf("\nIntroduceti noua ora de sosire:");
-				char temp[100];
-				scanf("%s", &temp);
-				lista->info->oraSosire = (char*)malloc(strlen(temp) + 1);
-				strcpy(lista->info->oraSosire, temp); }break;
-
-			case 5:{free(lista->info->orasPlecare);
-				printf("\nIntroduceti noul oras de plecare:");
-				char temp[100];
-				scanf("%s", &temp);
-				lista->info->orasPlecare = (char*)malloc(strlen(temp) + 1);
-				strcpy(lista->info->orasPlecare, temp); }break;
-
-			case 6:{free(lista->info->orasSosire);
-				printf("\nIntroduceti noul oras de sosire:");
-				char temp[100];
-				scanf("%s", &temp);
-				lista->info->orasSosire = (char*)malloc(strlen(temp) + 1);
-				strcpy(lista->info->orasSosire, temp); }break;
-
-			case 7:{
-				printf("\nIntroduceti costurile noi/ruta:");
-				int nr;
-				scanf("%f", &nr);
-				lista->info->costuriTotaleRuta = nr;
-			}break;
-
+	if (strcmp(lista->info->idZbor, idZbor) == 0)
+	{
+		char* da = (char*)malloc(sizeof(char)*strlen(Date));
+		strcpy(da, Date);
+		linieRUZ* ruz = (linieRUZ*)malloc(sizeof(linieRUZ));
+		char* id;
+		char s[] = " ";
+		id = strtok(da, s);
+		lista->info->idAvion = atoi(id);
+		while (id != NULL){
+			
+			printf("%d ", lista->info->idAvion);
+			id = strtok(NULL, " ");
+			free(lista->info->oraPlecare);
+			lista->info->oraPlecare = (char*)malloc(sizeof(char)*(strlen(id) + 1));
+			strcpy(lista->info->oraPlecare, id);
+			printf("%s ", lista->info->oraPlecare);
+			id = strtok(NULL, " ");
+			free(lista->info->oraSosire);
+			lista->info->oraSosire = (char*)malloc(sizeof(char)*(strlen(id) + 1));
+			strcpy(lista->info->oraSosire, id);
+			printf("%s ", lista->info->oraSosire);
+			id = strtok(NULL, " ");
+			free(lista->info->orasPlecare);
+			lista->info->orasPlecare = (char*)malloc(sizeof(char)*(strlen(id) + 1));
+			strcpy(lista->info->orasPlecare, id);
+			printf("%s ", lista->info->orasPlecare);
+			id = strtok(NULL, " ");
+			free(lista->info->orasSosire);
+			lista->info->orasSosire = (char*)malloc(sizeof(char)*(strlen(id) + 1));
+			strcpy(lista->info->orasSosire, id);
+			printf("%s ", lista->info->orasSosire);
+			id = strtok(NULL, " ");
+			lista->info->costuriTotaleRuta = atof(id);
+			printf("%f ", lista->info->costuriTotaleRuta);
+			id = strtok(NULL, " ");
 
 		}
-	} else return lista;
+		printf("\nModificare efectuata cu succes!");
+	}
+	else printf("\nNu exista ruta de zbor cu acest id!");
+	 return lista;
 }
 
 linieRUZ* cautaElementRUZ(char* idZbor, HashRUZ ht) {
@@ -188,16 +184,17 @@ linieRUZ* cautaElementRUZ(char* idZbor, HashRUZ ht) {
 	int poz = functieHashRUZ(idZbor, ht.dim);
 	NodRUZ* list = ht.listaRUZ[poz];
 
-	while (list != NULL&&strcmp(list->info->idZbor, idZbor) != 0)
+	while (list!=nullptr&&strcmp(list->info->idZbor, idZbor) != 0)
 		list = list->next;
-	if (strcmp(list->info->idZbor, idZbor) == 0)
+	 if (strcmp(list->info->idZbor, idZbor) == 0)
 		return list->info;
-	else if (strcmp(list->info->idZbor, idZbor) != 0) return NULL;
-
+	 else if (strcmp(list->info->idZbor, idZbor) != 0) return nullptr;
+	
 
 }
 
-void findRUZ(HashRUZ ht, char* idZbor) {
+void findRUZ(HashRUZ ht, char* idZbor)
+{
 	linieRUZ* elem = cautaElementRUZ(idZbor, ht);
 	if (elem)
 		printf(" %s %d %s %s %s %s %f\n", elem->idZbor, elem->idAvion, elem->oraPlecare, elem->oraSosire,
@@ -205,9 +202,9 @@ void findRUZ(HashRUZ ht, char* idZbor) {
 	else printf("\nNu exista aceasta ruta de zbor!");
 }
 
-
-
 //nu merge cum trebuie
+//sterge elementul urmator
+//pentru ultimul nu sterge nimic, lasa ht-ul intact
 void deleteRUZ(HashRUZ ht, char* idZbor) {
 	int poz = functieHashRUZ(idZbor, ht.dim);
 	NodRUZ* list = ht.listaRUZ[poz];
@@ -216,12 +213,14 @@ void deleteRUZ(HashRUZ ht, char* idZbor) {
 		if (ht.listaRUZ[poz]->info == NULL) {
 			free(ht.listaRUZ[poz]);
 			ht.listaRUZ[poz] = NULL;
-		} else {
+		}
+		else {
 			NodRUZ* date = ht.listaRUZ[poz];
 			ht.listaRUZ[poz] = date->next;
 			free(date);
 		}
-	} else {
+	}
+	else {
 		NodRUZ* date = ht.listaRUZ[poz];
 		while (date->next != NULL&&strcmp(date->info->idZbor, idZbor) != 0)
 			date = date->next;
@@ -232,30 +231,28 @@ void deleteRUZ(HashRUZ ht, char* idZbor) {
 		if (da == NULL) {
 			date->next = NULL;
 			free(da);
-		} else {
+		}
+		else {
 			date->next = da->next;
 			free(da);
-
-
 		}
-
 	}
-
-
-
-
-
 }
 
-void intilializareRUZ(FILE* file, HashRUZ hashtable) {
-	if (!file) {
+void intilializareRUZ(FILE* file, HashRUZ hashtable)
+{	
+	if (!file)
+	{
 		printf("Fisierul nu a fost gasit!");
-	} else {
-		char idZbor[20], oraPlecare[6], oraSosire[6], orasPlecare[20], orasSosire[20];
+	}
+	else
+	{
+		char idZbor[20],oraPlecare[6],oraSosire[6],orasPlecare[20],orasSosire[20];
 		int idAvion;
 		float  costuriTotaleRuta;
 		fscanf(file, "%s", idZbor);
-		while (!feof(file)) {
+		while (!feof(file))
+		{
 
 			fscanf(file, "%d", &idAvion);
 			fscanf(file, "%s", &oraPlecare);
@@ -264,7 +261,7 @@ void intilializareRUZ(FILE* file, HashRUZ hashtable) {
 			fscanf(file, "%s", &orasSosire);
 			fscanf(file, "%f", &costuriTotaleRuta);
 			linieRUZ* ruz = creareRUZ(idZbor, idAvion, oraPlecare, oraSosire, orasPlecare, orasSosire, costuriTotaleRuta);
-			NodRUZ* nod = creareNodRUZ(ruz);
+			nod = creareNod(ruz);
 			inserareRUZ(hashtable, nod);
 			fscanf(file, "%s", idZbor);
 		}
@@ -274,57 +271,64 @@ void intilializareRUZ(FILE* file, HashRUZ hashtable) {
 
 }
 
-void addRUZ(HashRUZ ht) {
+void addRUZ(char* Date)
+{
+	char* da = (char*)malloc(sizeof(char)*strlen(Date));
+	strcpy(da, Date);
 	linieRUZ* ruz = (linieRUZ*)malloc(sizeof(linieRUZ));
-	printf("\nIntroduceti datele pentru o noua ruta de zbor:");
-	char idZbor[20], oraPlecare[6], oraSosire[6], orasPlecare[20], orasSosire[20];
-	int idAvion; float  costuriTotaleRuta;
-	printf("ID zbor:");
-	scanf("%s", &idZbor);
-	ruz->idZbor = (char*)malloc(sizeof(char)*(strlen(idZbor) + 1));
-	strcpy(ruz->idZbor, idZbor);
-	printf("ID avion:");
-	scanf("%d", &idAvion);
-	printf("Ora plecare:");
-	scanf("%s", &oraPlecare);
-	printf("Ora sosire:");
-	scanf("%s", &oraSosire);
-	printf("Oras plecare:");
-	scanf("%s", &orasPlecare);
-	printf("Oras sosire:");
-	scanf("%s", &orasSosire);
-	printf("Costuri totale ruta:");
-	scanf("%f", &costuriTotaleRuta);
-	ruz->idAvion = idAvion;
-	ruz->oraPlecare = (char*)malloc(sizeof(char)*(strlen(oraPlecare) + 1));
-	strcpy(ruz->oraPlecare, oraPlecare);
-	ruz->oraSosire = (char*)malloc(sizeof(char)*(strlen(oraSosire) + 1));
-	strcpy(ruz->oraSosire, oraSosire);
-	ruz->orasPlecare = (char*)malloc(sizeof(char)*(strlen(orasPlecare) + 1));
-	strcpy(ruz->orasPlecare, orasPlecare);
-	ruz->orasSosire = (char*)malloc(sizeof(char)*(strlen(orasSosire) + 1));
-	strcpy(ruz->orasSosire, orasSosire);
-	ruz->costuriTotaleRuta = costuriTotaleRuta;
+	char* id;
+	char s[] = " ";
+	id = strtok( da, s);
+	ruz->idZbor = (char*)malloc(sizeof(char)*(strlen(id) + 1));
+	strcpy(ruz->idZbor, id);
+	while (id != NULL){
+		printf("%s ", ruz->idZbor);
+		id = strtok(NULL, " ");
+		ruz->idAvion = atoi(id);
+		printf("%d ", ruz->idAvion);
+		id = strtok(NULL, " ");
+		ruz->oraPlecare = (char*)malloc(sizeof(char)*(strlen(id) + 1));
+		strcpy(ruz->oraPlecare, id);
+		printf("%s ", ruz->oraPlecare);
+		id = strtok(NULL, " ");
+		ruz->oraSosire = (char*)malloc(sizeof(char)*(strlen(id) + 1));
+		strcpy(ruz->oraSosire, id);
+		printf("%s ", ruz->oraSosire);
+		id = strtok(NULL, " ");
 
-	NodRUZ* nod = creareNodRUZ(ruz);
-	inserareRUZ(ht, nod);
+		ruz->orasPlecare = (char*)malloc(sizeof(char)*(strlen(id) + 1));
+		strcpy(ruz->orasPlecare, id);
+		printf("%s ", ruz->orasPlecare);
+		id = strtok(NULL, " ");
+		ruz->orasSosire = (char*)malloc(sizeof(char)*(strlen(id) + 1));
+		strcpy(ruz->orasSosire, id);
+		printf("%s ", ruz->orasSosire);
+		id = strtok(NULL, " ");
+		ruz->costuriTotaleRuta = atof(id);
+		printf("%f ", ruz->costuriTotaleRuta);
+		id = strtok(NULL, " ");
+	
+	}
+	NodRUZ* nod = creareNod(ruz);
+	inserareRUZ(hashtable, nod);
 }
 
-void main() {
-	HashRUZ hashtable;
+void main()
+{
 	hashtable = alocaMemorieRUZ();
 	FILE* file;
 	file = fopen("program.txt", "r");
 	intilializareRUZ(file, hashtable);
 	afisareRUZ(hashtable);
 	//findRUZ(hashtable, "hash3");
-	//updateRUZ(hashtable, "hash2");
-	printf("=========");
-	//addRUZ(hashtable);
+	updateRUZ("hash1", "1 12:30 13:50 bucur valcea 256.6");
+	printf("\n=========");
 
+	//addRUZ("hash10 1 12:30 13:50 bucuresti valcea 256.6");
 
+	
 	//stergereHash(hashtable,"hash1");
-	deleteRUZ(hashtable, "hash2");
+	//deleteRUZ(hashtable, "hash3");
 	afisareRUZ(hashtable);
 
 }
