@@ -3,6 +3,10 @@
 //#include <malloc.h>
 //#include <ctype.h>
 //
+//void echo(char* msg) {
+//	printf(msg);
+//	fprintf(log, msg);
+//}
 //struct picker {
 //	char* comenzi[25];
 //	void(*functii[26])(char*);

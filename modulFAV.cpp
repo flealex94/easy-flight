@@ -2,7 +2,11 @@
 #include "string.h"
 #include "malloc.h"
 #include "stdlib.h"
-
+char* copiaza(char* string) {
+	char* nou = (char*)malloc(sizeof(char)*(strlen(string) + 1));
+	strcpy(nou, string);
+	return nou;
+}
 struct linieFAV {
 	char* idAeronava;
 	enum { PAS, CAR }tipAero;
@@ -18,11 +22,10 @@ NodFAV* listaDublaCirculara = nullptr;
 
 linieFAV* creareFAV(char* idA, int tipA, int nrL, float grM) {
 	linieFAV* fav = (linieFAV*)malloc(sizeof(linieFAV));
-	fav->idAeronava = (char*)malloc((strlen(idA) + 1));
-	strcpy(fav->idAeronava, idA);
+	fav->idAeronava = copiaza(idA);
 	switch (tipA) {
-	case 0: fav->tipAero = fav->PAS; break;
-	case 1: fav->tipAero = fav->CAR; break;
+		case 0: fav->tipAero = fav->PAS; break;
+		case 1: fav->tipAero = fav->CAR; break;
 	}
 	fav->nrLocuri = nrL;
 	fav->greutateMaxima = grM;
@@ -35,12 +38,11 @@ NodFAV* creareNodFAV(linieFAV* fav) {
 	nou->next = nou->prev = nullptr;
 	return nou;
 }
-void inserareFAV(NodFAV* listaDublaCirculara,NodFAV* nod) {
+void inserareFAV(NodFAV* nod) {
 	if (listaDublaCirculara == nullptr) {
 		listaDublaCirculara = nod;
 		listaDublaCirculara->next = listaDublaCirculara->prev = listaDublaCirculara;
-	}
-	else {
+	} else {
 		nod->next = listaDublaCirculara;
 		listaDublaCirculara->prev->next = nod;
 		nod->prev = listaDublaCirculara->prev;
@@ -50,8 +52,7 @@ void inserareFAV(NodFAV* listaDublaCirculara,NodFAV* nod) {
 void initializareFAV(FILE*& file) {
 	if (!file) {
 		printf("Nu se poate deschide fisierul!\n");
-	}
-	else {
+	} else {
 		int tipAero, nrLocuri; float greutateMaxima;
 		char idAeronava[20];
 		fscanf(file, "%s", idAeronava);
@@ -59,16 +60,16 @@ void initializareFAV(FILE*& file) {
 			fscanf(file, "%d", &tipAero);
 			fscanf(file, "%d", &nrLocuri);
 			fscanf(file, "%f", &greutateMaxima);
-			linieFAV* fav = nullptr; fav = creareFAV(idAeronava, tipAero, nrLocuri, greutateMaxima);
-			NodFAV* nod = nullptr; nod = creareNodFAV(fav);
-			inserareFAV(listaDublaCirculara, nod);
+			linieFAV* fav = creareFAV(idAeronava, tipAero, nrLocuri, greutateMaxima);
+			NodFAV* nod = creareNodFAV(fav);
+			inserareFAV(nod);
 
 			fscanf(file, "%s", idAeronava);
 		}
 	}
 }
 NodFAV* cautaElementFAV(char* id) {
-	if (listaDublaCirculara) {
+	if (listaDublaCirculara != nullptr) {
 		NodFAV* origine = listaDublaCirculara;
 		do {
 			if (strcmp(listaDublaCirculara->infoUtil->idAeronava, id) == 0)
@@ -87,39 +88,36 @@ void afisareFAV() {
 			printf(" %s %lf %i %d\n", linie->idAeronava, linie->greutateMaxima, linie->tipAero, linie->nrLocuri);
 			listaDublaCirculara = listaDublaCirculara->next;
 		} while (listaDublaCirculara != origine);
-	}
-	else printf("\nLista goala\n");
+	} else printf("\nLista goala\n");
 }
 
 void findFAV(char* id) {
-	linieFAV* elem = nullptr; elem = cautaElementFAV(id)->infoUtil;
-	if (elem != nullptr) printf("\n  %s %lf %i %d\n", elem->idAeronava, elem->greutateMaxima, elem->tipAero, elem->nrLocuri);
-	else printf("\nNu exista elementul\n");
+	NodFAV* elem = cautaElementFAV(id);
+	if (elem != nullptr) {
+		linieFAV* linie = elem->infoUtil;
+		printf("\n  %s %lf %i %d\n", linie->idAeronava, linie->greutateMaxima, linie->tipAero, linie->nrLocuri);
+	} else printf("\nNu exista elementul\n");
 }
 
-void updateFAV(char* id,char* Date) {
-	char* da = (char*)malloc(sizeof(char)*strlen(Date));
-	strcpy(da, Date);
-	linieFAV* fav = (linieFAV*)malloc(sizeof(linieFAV));
-	while (listaDublaCirculara->next && (strcmp(listaDublaCirculara->infoUtil->idAeronava, id) != 0))
-				listaDublaCirculara = listaDublaCirculara->next;
-	if (strcmp(listaDublaCirculara->infoUtil->idAeronava, id) == 0)
-	{
-		char* id;
-		char s[] = " ";
-		id = strtok(da, s);
-		//???Conversie! fav->CAR=id;
-		//listaDublaCirculara->infoUtil->CAR =atoi (id);
-		while (id != NULL)
-		{
-			id = strtok(NULL, " ");
-			listaDublaCirculara->infoUtil->nrLocuri = atoi(id);
-			id = strtok(NULL, " ");
-			listaDublaCirculara->infoUtil->greutateMaxima = atof(id);
-			id = strtok(NULL, " ");
-
+void updateFAV(char* DATE) {
+	char* dat = copiaza(DATE);
+	char* id = strtok(dat, " \t");
+	NodFAV* elem = cautaElementFAV(id);
+	if (elem != nullptr) {
+		linieFAV* linie = elem->infoUtil;
+		free(linie->idAeronava);
+		linie->idAeronava = copiaza(strtok(NULL, " \t"));
+		char* aux = strtok(NULL, " \t");
+		int tipA = atoi(aux);
+		switch (tipA) {
+			case 0: linie->tipAero = linie->PAS; break;
+			case 1: linie->tipAero = linie->CAR; break;
 		}
-	}
+		aux = strtok(NULL, " \t");
+		linie->nrLocuri = atoi(aux);
+		aux = strtok(NULL, " \t");
+		linie->greutateMaxima = atof(aux);
+	} else printf("\nElementul nu a fost gasit!\n");
 }
 
 void deleteFAV(char* id) {
@@ -131,37 +129,23 @@ void deleteFAV(char* id) {
 		free(elem->infoUtil->idAeronava);
 		free(elem->infoUtil);
 		free(elem);
-	}
-	else printf("\nNu exista elementul\n");
+	} else printf("\nNu exista elementul\n");
 }
 
-void addFAV(char* Date) {
-	char* da = (char*)malloc(sizeof(char)*strlen(Date));
-	strcpy(da, Date);
-	linieFAV* fav = (linieFAV*)malloc(sizeof(linieFAV));
-	char* id;
-	char s[] = " ";
-	id = strtok(da, s);
-	fav->idAeronava = (char*)malloc(sizeof(char)*(strlen(id) + 1));
-	strcpy(fav->idAeronava, id);
-	while (id != NULL)
-	{
-		printf("%s ", fav->idAeronava);
-		id = strtok(NULL, " ");
-		//???Conversie! fav->CAR=id;
-		id = strtok(NULL, " ");
-		fav->nrLocuri =atoi(id);
-		printf("%d ", fav->nrLocuri);
-		id = strtok(NULL, " ");
-		fav->greutateMaxima = atof(id);
-		printf("%lf ", fav->greutateMaxima);
-		id = strtok(NULL, " ");
-
-	}
-	NodFAV* nod = nullptr;
-	nod = creareNodFAV(fav);
-	inserareFAV(listaDublaCirculara, nod);
-	
+void addFAV(char* DATE) {
+	char* dat = copiaza(DATE);
+	char* aux;
+	char* idA = strtok(DATE, " \t");;
+	int tipA; int nrL; float grM;
+	aux = strtok(NULL, " \t");
+	tipA = atoi(aux);
+	aux = strtok(NULL, " \t");
+	nrL = atoi(aux);
+	aux = strtok(NULL, " \t");
+	grM = atof(aux);
+	linieFAV* fav = creareFAV(idA, tipA, nrL, grM);
+	NodFAV* nod = creareNodFAV(fav);
+	inserareFAV(nod);
 }
 
 
@@ -171,8 +155,8 @@ void main() {
 	initializareFAV(file);
 	afisareFAV();
 	//findFAV("qwer");
-	addFAV("aeronava4 1 34 456");
+	/*addFAV("aeronava4 1 34 456");
 	updateFAV("aeronava4", "1 36 345");
-	afisareFAV();
-	
+	afisareFAV();*/
+
 }
