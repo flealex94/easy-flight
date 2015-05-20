@@ -13,6 +13,7 @@ struct NodFAV {
 	NodFAV* next;
 	NodFAV* prev;
 };
+NodFAV* listaDublaCirculara = nullptr;
 
 linieFAV* creareFAV(char* idA, int tipA, int nrL, float grM) {
 	linieFAV* fav = (linieFAV*)malloc(sizeof(linieFAV));
@@ -30,22 +31,21 @@ NodFAV* creareNodFAV(linieFAV* fav) {
 	NodFAV* nou = nullptr;
 	nou = (NodFAV*)malloc(sizeof(NodFAV));
 	nou->infoUtil = fav;
-	nou->next = nou->prev = NULL;
+	nou->next = nou->prev = nullptr;
 	return nou;
 }
-void inserareFAV(NodFAV* listaDublaCirculara, NodFAV* nod) {
-	if (listaDublaCirculara == NULL) {
+void inserareFAV(NodFAV* nod) {
+	if (listaDublaCirculara == nullptr) {
 		listaDublaCirculara = nod;
 		listaDublaCirculara->next = listaDublaCirculara->prev = listaDublaCirculara;
 	} else {
 		nod->next = listaDublaCirculara;
-		nod->prev = listaDublaCirculara->prev;
 		listaDublaCirculara->prev->next = nod;
+		nod->prev = listaDublaCirculara->prev;
 		listaDublaCirculara->prev = nod;
 	}
 }
-
-void initializareFAV(FILE* file, NodFAV* listaDublaCirculara) {
+void initializareFAV(FILE* &file) {
 	if (!file) {
 		printf("Nu se poate deschide fisierul!\n");
 	} else {
@@ -56,101 +56,101 @@ void initializareFAV(FILE* file, NodFAV* listaDublaCirculara) {
 			fscanf(file, "%d", &tipAero);
 			fscanf(file, "%d", &nrLocuri);
 			fscanf(file, "%f", &greutateMaxima);
-			linieFAV* fav = creareFAV(idAeronava, tipAero, nrLocuri, greutateMaxima);
-			NodFAV* nod = creareNodFAV(fav);
+			linieFAV* fav = nullptr; fav = creareFAV(idAeronava, tipAero, nrLocuri, greutateMaxima);
+			NodFAV* nod = nullptr; nod = creareNodFAV(fav);
 			inserareFAV(listaDublaCirculara, nod);
 
 			fscanf(file, "%s", idAeronava);
 		}
 	}
 }
-
-NodFAV* cautaElementFAV(NodFAV* lista, char* id) {
-	if (lista) {
-		NodFAV* origine = lista;
+NodFAV* cautaElementFAV(char* id) {
+	if (listaDublaCirculara) {
+		NodFAV* origine = listaDublaCirculara;
 		do {
-			if (strcmp(lista->infoUtil->idAeronava, id) == 0)
-				return lista;
-			lista = lista->next;
-		} while (lista != origine);
+			if (strcmp(listaDublaCirculara->infoUtil->idAeronava, id) == 0)
+				return listaDublaCirculara;
+			listaDublaCirculara = listaDublaCirculara->next;
+		} while (listaDublaCirculara != origine);
 	}
 
 	return nullptr;
 }
-
-void updateFAV(NodFAV* lista, char* idAeronava) {
-	NodFAV* elem = cautaElementFAV(lista, idAeronava);
-	if (elem) {
-		printf("\nCe vrei sa modifici?\n");
-		printf("1.Id-ul aeronavei\n");
-		printf("2.Numar de locuri\n");
-		printf("3.Greutatea maxima\n");
-		printf("4.Tipul aeronavei\n");
-		int ad;
-		printf("\nIntrodu cifra corespunzatoare alegerii:");
-		scanf("%d", &ad);
-
-		switch (ad) {
-			case 1:
-				free(elem->infoUtil->idAeronava);
-				printf("\nIntroduceti noul id al aeronavei:");
-				char temp[100];
-				scanf("%s", &temp);
-				elem->infoUtil->idAeronava = (char*)malloc(strlen(temp) + 1);
-				strcpy(elem->infoUtil->idAeronava, temp);
-				break;
-			case 2:
-				printf("\nIntroduceti noul numar de locuri:");
-				int nr;
-				scanf("%d", &nr);
-				elem->infoUtil->nrLocuri = nr;
-				break;
-			case 3:
-				printf("\nIntroduceti noua greutate maxima:");
-				int n;
-				scanf("%d", &n);
-				elem->infoUtil->greutateMaxima = n;
-				break;
-			case 4:
-				if (elem->infoUtil->tipAero == 1)
-					elem->infoUtil->tipAero = elem->infoUtil->PAS;
-				else if (elem->infoUtil->tipAero == 0)
-					elem->infoUtil->tipAero == elem->infoUtil->CAR;
-		}
-	} else
-		printf("\nNu exista aceasta aeronava");
-}
-
-
-void findFAV(NodFAV* lista, char* id) {
-	linieFAV* elem = cautaElementFAV(lista, id)->infoUtil;
-	if (elem) printf("\n  %s %lf %i %d\n", elem->idAeronava, elem->greutateMaxima, elem->tipAero, elem->nrLocuri);
-	else printf("\nNu exista elementul\n");
-}
-
-void afisareFAV(NodFAV* lista) {
-	if (lista) {
-		NodFAV* origine = lista;
+void afisareFAV() {
+	if (listaDublaCirculara != nullptr) {
+		NodFAV* origine = listaDublaCirculara;
 		do {
-			printf(" %s %lf %i %d\n", lista->infoUtil->idAeronava, lista->infoUtil->greutateMaxima, lista->infoUtil->tipAero, lista->infoUtil->nrLocuri);
-			lista = lista->next;
-		} while (lista != origine);
+			linieFAV* linie = listaDublaCirculara->infoUtil;
+			printf(" %s %lf %i %d\n", linie->idAeronava, linie->greutateMaxima, linie->tipAero, linie->nrLocuri);
+			listaDublaCirculara = listaDublaCirculara->next;
+		} while (listaDublaCirculara != origine);
 	} else printf("\nLista goala\n");
 }
 
-void deleteFAV(NodFAV* &lista, char* id) {
-	NodFAV* elem = cautaElementFAV(lista, id);
+void findFAV(char* id) {
+	linieFAV* elem = nullptr; elem = cautaElementFAV(id)->infoUtil;
+	if (elem != nullptr) printf("\n  %s %lf %i %d\n", elem->idAeronava, elem->greutateMaxima, elem->tipAero, elem->nrLocuri);
+	else printf("\nNu exista elementul\n");
+}
+
+void updateFAV(char* DATE) {
+	/*	DE MODIFICAT!!!!!!!!!
+	NodFAV* elem = cautaElementFAV(idAeronava);
 	if (elem) {
-		lista = elem->next;
-		lista->prev = elem->prev;
-		elem->prev->next = lista;
+	printf("\nCe vrei sa modifici?\n");
+	printf("1.Id-ul aeronavei\n");
+	printf("2.Numar de locuri\n");
+	printf("3.Greutatea maxima\n");
+	printf("4.Tipul aeronavei\n");
+	int ad;
+	printf("\nIntrodu cifra corespunzatoare alegerii:");
+	scanf("%d", &ad);
+
+	switch (ad) {
+	case 1:
+	free(elem->infoUtil->idAeronava);
+	printf("\nIntroduceti noul id al aeronavei:");
+	char temp[100];
+	scanf("%s", &temp);
+	elem->infoUtil->idAeronava = (char*)malloc(strlen(temp) + 1);
+	strcpy(elem->infoUtil->idAeronava, temp);
+	break;
+	case 2:
+	printf("\nIntroduceti noul numar de locuri:");
+	int nr;
+	scanf("%d", &nr);
+	elem->infoUtil->nrLocuri = nr;
+	break;
+	case 3:
+	printf("\nIntroduceti noua greutate maxima:");
+	int n;
+	scanf("%d", &n);
+	elem->infoUtil->greutateMaxima = n;
+	break;
+	case 4:
+	if (elem->infoUtil->tipAero == 1)
+	elem->infoUtil->tipAero = elem->infoUtil->PAS;
+	else if (elem->infoUtil->tipAero == 0)
+	elem->infoUtil->tipAero == elem->infoUtil->CAR;
+	}
+	} else
+	printf("\nNu exista aceasta aeronava");*/
+}
+
+void deleteFAV(char* id) {
+	NodFAV* elem = cautaElementFAV(id);
+	if (elem) {
+		listaDublaCirculara = elem->next;
+		listaDublaCirculara->prev = elem->prev;
+		elem->prev->next = listaDublaCirculara;
 		free(elem->infoUtil->idAeronava);
 		free(elem->infoUtil);
 		free(elem);
 	} else printf("\nNu exista elementul\n");
 }
 
-void addFAV(NodFAV* lista) {
+void addFAV(char* DATE) {
+	/* de modificat
 	linieFAV* fav = (linieFAV*)malloc(sizeof(linieFAV));
 	char id[100];
 	printf("\nIntroduceti datele pentru o noua flota de aeronave.\n");
@@ -162,18 +162,19 @@ void addFAV(NodFAV* lista) {
 	printf("Greutate maxima:"); scanf("%lf", &fav->greutateMaxima);
 	printf("Tip aeronava PAS/CAR:"); scanf("%d", &fav->tipAero);
 	if (fav->tipAero != 0 && fav->tipAero != 1) {
-		printf("\nNu se accepta decat valoarea 0 sau 1! Reintroduceti!\n");
-		printf("Tip aeronava PAS/CAR:"); scanf("%d", &fav->tipAero);
+	printf("\nNu se accepta decat valoarea 0 sau 1! Reintroduceti!\n");
+	printf("Tip aeronava PAS/CAR:"); scanf("%d", &fav->tipAero);
 	}
-	NodFAV* nod = creareNodFAV(fav);
-	inserareFAV(lista, nod);
+	NodFAV* nod = nullptr;
+	nod = creareNodFAV(fav);
+	inserareFAV(lista, nod);*/
 }
 
 
-
 void main() {
-	NodFAV* lista = NULL;
 	FILE* file;
 	file = fopen("flaero.txt", "r");;
-	initializareFAV(file, lista);
+	initializareFAV(file);
+	//afisareFAV(lista);
+	findFAV("qwer");
 }
