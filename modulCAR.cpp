@@ -1,6 +1,9 @@
 #include<stdio.h>
 #include<malloc.h>
 #include <string.h>
+#include <stdlib.h>
+#include <time.h>
+#include <ctype.h>
 
 struct linieCAR {
 	int idRezervare;
@@ -15,6 +18,8 @@ struct NodAVL {
 	NodAVL* st;
 	NodAVL* dr;
 };
+
+NodAVL* arbore = NULL;
 
 char* copiaza(char* string) {
 	char* nou = (char*)malloc(sizeof(char)*(strlen(string) + 1));
@@ -112,6 +117,63 @@ void inserareAVL(NodAVL* &rad, linieCAR* carg){
 
 }
 
+NodAVL* cautaElementCAR(int id)
+{
+	if (arbore != NULL)
+	{
+		NodAVL* origine = arbore;
+		do
+		{
+			if (arbore->car->idRezervare == id)
+				return arbore;
+			if (arbore->car->idRezervare > id)
+				arbore = arbore->st;
+			else arbore = arbore->dr;
+		} while (arbore != origine);
+	}
+}
+void updateCAR(char* DATE)
+{
+	char* dat = copiaza(DATE);
+	char* aux;
+	int id;
+	float greutateMarfa, nivelRisc, costTotal;
+	aux = strtok(dat, " \t");
+	id = atoi(aux);
+	NodAVL* elem = cautaElementCAR(id);
+	if (elem != nullptr){
+		linieCAR* linie = elem->car;
+		linie->idRezervare = id;
+		char* idZb = strtok(NULL," \t");
+		free(linie->idZbor);
+		linie->idZbor = copiaza(idZb);
+		char* aux = strtok(NULL, " \t");
+		linie->greutateMarfa = atof(aux);
+		aux = strtok(NULL, " \t");
+		linie->nivelRisc = atof(aux);
+		linie->costTotal = linie->costTotal*linie->nivelRisc * 7;
+	}//echo("Date gestiune cargo actualizate!\n");
+}
+ //else echo("\nElementul nu a fost gasit!\n");
+
+
+void addCAR(char* DATE)
+{
+	char* dat = copiaza(DATE);
+	char* aux;
+	int idRezervare;
+	float greutateMarfa, nivelRisc, costTotal;
+	aux = strtok(dat, " \t");
+	idRezervare = atoi(aux);
+	char* idZbor = strtok(NULL, " \t");
+	greutateMarfa = atof(aux);
+	aux = strtok(NULL, " \t");
+	nivelRisc = atof(aux);
+	linieCAR* car = creareCAR(idRezervare, idZbor, greutateMarfa, nivelRisc);
+	inserareAVL(arbore, car);
+	//echo("Gestiune cargo adaugata!\n");
+}
+
 void afisareCAR(linieCAR* car){
 	printf("%d %s %f %f %f\n", car->idRezervare, car->idZbor, car->greutateMarfa, car->nivelRisc,car->costTotal);
 }
@@ -123,6 +185,9 @@ void SRD(NodAVL* rad){
 		SRD(rad->dr);
 	}
 }
+
+
+
 void citireFisierCAR(FILE* f, NodAVL* &arbore){
 	if (!f){
 		printf("Nu se poate deschide fisierul!\n");
@@ -148,8 +213,10 @@ void citireFisierCAR(FILE* f, NodAVL* &arbore){
 
 void main(){
 	FILE* file = fopen("marfuri.txt","r");
-	NodAVL* arbore = NULL;
 	citireFisierCAR(file,arbore);
-
+	addCAR("5 ana 3 5");
+	SRD(arbore);
+	printf("\n-----------");
+	updateCAR("5 maria 30 4");
 	SRD(arbore);
 }
