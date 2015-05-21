@@ -35,7 +35,7 @@ ListaPREP* creareNodPREP(linieREP* rep) {
 	ListaPREP* nou = (ListaPREP*)malloc(sizeof(ListaPREP));
 	nou->info = rep;
 	nou->nextP = NULL;
-	nou->listaNoduri = NULL;
+	nou->listaNoduri = NULL;;
 	return nou;
 }
 
