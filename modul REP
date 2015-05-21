@@ -82,6 +82,24 @@ ListaSREP* inserareLSREP(ListaSREP* noduriREP, linieREP* rep) {
 	return noduriREP;
 }
 
+void addREP(char* date) {
+	char* dat = copiaza(date);
+	char* aux;
+	int idR, loc;
+	float cost;
+	aux = strtok(dat, " \t");
+	idR = atoi(aux);
+	char* idZ = strtok(NULL, " \t");
+	char* nume = strtok(NULL, " \t");
+	aux = strtok(NULL, " \t");
+	loc = atoi(aux);
+	aux = strtok(NULL, " \t");
+	cost = atof(aux);
+
+	linieREP* rep = creareREP(idR,idZ,nume,loc,cost);
+	inserareLPREP(graf, rep);
+}
+
 void citireFisierREP(FILE* f, ListaPREP* rep) {
 	if (!f) {
 		printf("Nu se poate deschide fisierul!");
@@ -106,9 +124,11 @@ void citireFisierREP(FILE* f, ListaPREP* rep) {
 				while (fscanf(f, "%d", &idRez) && fscanf(f, "%s", &idZbor) &&
 					fscanf(f, "%s", &nume) && fscanf(f, "%d", &loc) &&
 					fscanf(f, "%f", &cost) && aux != -1) {
+					linieREP* rep1 = creareREP(idRez, idZbor, nume, loc, cost);
 					ListaSREP* noduri = temp->listaNoduri;
-					noduri = inserareLSREP(noduri, rep);
+					noduri = inserareLSREP(noduri, rep1);
 					temp->listaNoduri = noduri;
+					fscanf(f, "%d", &aux);
 				}
 			//}
 			fscanf(f, "%d", &idRez);
@@ -134,6 +154,9 @@ void afisareREP(ListaPREP* graf) {
 void main() {
 	FILE* f = fopen("pasageri.txt", "r");
 	citireFisierREP(f,graf);
+	afisareREP(graf);
+	addREP("87 jjj loiuy 9 23.3");
+	printf("-------------------\n");
 	afisareREP(graf);
 }
 
