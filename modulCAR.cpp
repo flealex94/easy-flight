@@ -25,7 +25,7 @@ char* copiaza(char* string) {
 linieCAR* creareCAR(int idR, char* idZ, float grM, float nvR){
 	linieCAR* car = (linieCAR*)malloc(sizeof(linieCAR));
 	car->idRezervare = idR;
-	car->idZbor = idZ;
+	car->idZbor = copiaza(idZ);
 	car->greutateMarfa = grM;
 	car->nivelRisc = nvR;
 	car->costTotal = car->greutateMarfa*car->nivelRisc * 7;
@@ -113,7 +113,7 @@ void inserareAVL(NodAVL* &rad, linieCAR* carg){
 }
 
 void afisareCAR(linieCAR* car){
-	printf("%d %d %f %f %f\n", car->idRezervare, car->idZbor, car->greutateMarfa, car->nivelRisc,car->costTotal);
+	printf("%d %s %f %f %f\n", car->idRezervare, car->idZbor, car->greutateMarfa, car->nivelRisc,car->costTotal);
 }
 void SRD(NodAVL* rad){
 	if (rad)
