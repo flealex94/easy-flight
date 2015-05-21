@@ -98,7 +98,52 @@ void addREP(char* date) {
 
 	linieREP* rep = creareREP(idR,idZ,nume,loc,cost);
 	inserareLPREP(graf, rep);
+	echo("Adaugare efectuata cu succes!\n");
 }
+
+void updateREP(char* date) {
+	char* dat = copiaza(date);
+	char* aux;
+	int idR;
+	aux = strtok(dat, " \t");
+	idR = atoi(aux);
+	ListaPREP* elem = cautaElementREP(idR);
+	if (elem != nullptr) {
+		linieREP* linie = elem->info;
+		char* idZ = strtok(NULL, " \t");
+		free(linie->idZbor);
+		linie->idZbor = copiaza(idZ);
+		char* nume = strtok(NULL, " \t");
+		free(linie->numeClient);
+		linie->numeClient = copiaza(nume);
+		aux = strtok(NULL, " \t");
+		linie->locZbor = atoi(aux);
+		aux = strtok(NULL, " \t");
+		linie->costBilet = atof(aux);
+		echo("Date modul rezervare actualizate!\n");
+	}
+	else
+		echo("Elementul nu a fost gasit!");
+}
+
+ListaSREP* cauta(ListaSREP* srep) {
+	return srep;
+}
+
+ListaPREP* cautaElementREP(int id) {
+	if (graf != NULL) {
+		ListaPREP* origine = graf;
+		do {
+			if (graf->info->idRezervare == id)
+				return graf;
+			else if (graf->listaNoduri->info->idRezervare == id)
+				cauta(graf->listaNoduri);
+			graf = graf->nextP;
+		} while (graf != origine);
+	}
+	return nullptr;
+}
+
 
 void citireFisierREP(FILE* f, ListaPREP* rep) {
 	if (!f) {
@@ -155,8 +200,12 @@ void main() {
 	FILE* f = fopen("pasageri.txt", "r");
 	citireFisierREP(f,graf);
 	afisareREP(graf);
-	addREP("87 jjj loiuy 9 23.3");
+	addREP("8 jjj loiuy 9 23.3");
 	printf("-------------------\n");
 	afisareREP(graf);
+	printf("-------------------\n");
+	afisareREP(cautaElementREP(8));
+	
+
 }
 
