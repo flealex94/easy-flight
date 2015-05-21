@@ -1,0 +1,32 @@
+pasageri.txt
+
+11 zbor1 Marian_Popa 245.3 3
+12 zbor2 Popescu_Ion 478.3 9
+13 zbor3 Maria_Istocescu 784.3 12
+14 zbor4 Dorian_Ivan 676 20
+15 zbor5 Ioana_Ivanache 456.3 10
+
+marfuri.txt
+
+11 zbor1 22.2 5.7
+12 zbor2 42.5 9.2
+13 zbor3 32.2 8.9
+14 zbor4 77.2 3.5
+15 zbor5 95.2 4.3
+
+
+program.txt
+
+zbor1 aeronava1 12:30 13:50 bucuresti valcea 256.6
+zbor2 aeronava2 15:30 18:50 sibiu hunedoara 999.2
+zbor3 aeronava3 11:30 12:50 sibiu valcea 1024.3
+zbor4 aeronava4 09:00 12:50 constanta bucuresti 245.5
+zbor5 aeronava4 11:30 19:50 timisoara bucuresti 1245.2
+
+flaero.txt
+
+aeronava1 0 23 123.8
+aeronava2 1 25 256.7
+aeronava3 0 34 456.6
+aeronava4 1 34 234.7
+aeronava5 0 55 487.4
