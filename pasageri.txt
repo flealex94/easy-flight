@@ -1,0 +1,5 @@
+11 zbor1 Marian_Popa 245.3 3
+12 zbor2 Popescu_Ion 478.3 9
+13 zbor3 Maria_Istocescu 784.3 12
+14 zbor4 Dorian_Ivan 676 20
+15 zbor5 Ioana_Ivanache 456.3 10

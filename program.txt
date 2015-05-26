@@ -1,0 +1,5 @@
+zbor1 aeronava1 12 13 bucuresti valcea 256.6
+zbor2 aeronava2 15 18 sibiu hunedoara 999.2
+zbor3 aeronava3 11 12 sibiu valcea 1024.3
+zbor4 aeronava4 09 12 constanta bucuresti 245.5
+zbor5 aeronava4 11 19 timisoara bucuresti 1245.2

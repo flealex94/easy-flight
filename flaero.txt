@@ -1,0 +1,5 @@
+aeronava1 0 23 123.8
+aeronava2 1 25 256.7
+aeronava3 0 34 456.6
+aeronava4 1 34 234.7
+aeronava5 0 55 487.4

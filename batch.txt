@@ -1,0 +1,16 @@
+find FAV aeronava4
+add FAV aeronava6 1 34 456
+update FAV aeronava4 1 36 345
+delete FAV aeronava6
+find ruz zbor1
+add RUZ zbor5 aeronava3 11 12 sibiu valcea 1024.3
+update RUZ zbor2 aeronava2 16 18 sibiu hunedoara 99.2
+delete RUZ zbor5
+find CAR 5 ana 3 5
+add CAR 5 ana 3 5
+update CAR 5 maria 30 4
+delete CAR 5 ana 3 5
+find CAR 13
+add CAR 16 zbor4 77.2 1.5
+update CAR 13 zbor3 77.2 1.5
+delete CAR 5

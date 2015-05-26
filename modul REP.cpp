@@ -56,12 +56,11 @@ linieREP* creareREP(int idRez, char* idZbor, char* nume, int loc, float cost) {
 	return rep;
 }
 
-ListaPREP* inserareLPREP(ListaPREP*& graf, linieREP* rep) {
+ListaPREP* inserareLPREP(linieREP* rep) {
 	if (graf == NULL) {
 		graf = creareNodPREP(rep);
 		return graf;
-	}
-	else {
+	} else {
 		ListaPREP* temp = graf;
 		while (temp->nextP != NULL)
 			temp = temp->nextP;
@@ -96,7 +95,7 @@ void addREP(char* date) {
 	aux = strtok(NULL, " \t");
 	cost = atof(aux);
 
-	linieREP* rep = creareREP(idR,idZ,nume,loc,cost);
+	linieREP* rep = creareREP(idR, idZ, nume, loc, cost);
 	inserareLPREP(graf, rep);
 	echo("Adaugare efectuata cu succes!\n");
 }
@@ -121,8 +120,7 @@ void updateREP(char* date) {
 		aux = strtok(NULL, " \t");
 		linie->costBilet = atof(aux);
 		echo("Date modul rezervare actualizate!\n");
-	}
-	else
+	} else
 		echo("Elementul nu a fost gasit!");
 }
 
@@ -148,16 +146,14 @@ ListaPREP* cautaElementREP(int id) {
 void citireFisierREP(FILE* f, ListaPREP* rep) {
 	if (!f) {
 		printf("Nu se poate deschide fisierul!");
-	}
-	else {
+	} else {
 		int idRez;
 		char idZbor[100];
 		char nume[100];
 		int loc;
 		float cost; int aux;
 		fscanf(f, "%d", &idRez);
-		while (!feof(f))
-		{
+		while (!feof(f)) {
 			fscanf(f, "%s", &idZbor);
 			fscanf(f, "%s", &nume);
 			fscanf(f, "%d", &loc);
@@ -165,16 +161,16 @@ void citireFisierREP(FILE* f, ListaPREP* rep) {
 			fscanf(f, "%d", &aux);
 			linieREP* rep = creareREP(idRez, idZbor, nume, loc, cost);
 			//for (int i = 0; i < contor; i++) {
-				ListaPREP* temp = inserareLPREP(graf, rep);
-				while (fscanf(f, "%d", &idRez) && fscanf(f, "%s", &idZbor) &&
-					fscanf(f, "%s", &nume) && fscanf(f, "%d", &loc) &&
-					fscanf(f, "%f", &cost) && aux != -1) {
-					linieREP* rep1 = creareREP(idRez, idZbor, nume, loc, cost);
-					ListaSREP* noduri = temp->listaNoduri;
-					noduri = inserareLSREP(noduri, rep1);
-					temp->listaNoduri = noduri;
-					fscanf(f, "%d", &aux);
-				}
+			ListaPREP* temp = inserareLPREP(graf, rep);
+			while (fscanf(f, "%d", &idRez) && fscanf(f, "%s", &idZbor) &&
+				   fscanf(f, "%s", &nume) && fscanf(f, "%d", &loc) &&
+				   fscanf(f, "%f", &cost) && aux != -1) {
+				linieREP* rep1 = creareREP(idRez, idZbor, nume, loc, cost);
+				ListaSREP* noduri = temp->listaNoduri;
+				noduri = inserareLSREP(noduri, rep1);
+				temp->listaNoduri = noduri;
+				fscanf(f, "%d", &aux);
+			}
 			//}
 			fscanf(f, "%d", &idRez);
 		}
@@ -184,11 +180,11 @@ void citireFisierREP(FILE* f, ListaPREP* rep) {
 void afisareREP(ListaPREP* graf) {
 	while (graf) {
 		printf("Lista principala: %d %s %s %d %f \n", graf->info->idRezervare, graf->info->idZbor,
-			graf->info->numeClient, graf->info->locZbor, graf->info->costBilet);
+			   graf->info->numeClient, graf->info->locZbor, graf->info->costBilet);
 		ListaSREP* noduri = graf->listaNoduri;
 		while (noduri) {
 			printf("Lista secundara: %d %s %s %d %f \n", noduri->info->idRezervare, noduri->info->idZbor,
-				noduri->info->numeClient, noduri->info->locZbor, noduri->info->costBilet);
+				   noduri->info->numeClient, noduri->info->locZbor, noduri->info->costBilet);
 			noduri = noduri->nextS;
 		}
 		graf = graf->nextP;
@@ -198,14 +194,14 @@ void afisareREP(ListaPREP* graf) {
 
 void main() {
 	FILE* f = fopen("pasageri.txt", "r");
-	citireFisierREP(f,graf);
+	citireFisierREP(f, graf);
 	afisareREP(graf);
 	addREP("8 jjj loiuy 9 23.3");
 	printf("-------------------\n");
 	afisareREP(graf);
 	printf("-------------------\n");
 	afisareREP(cautaElementREP(8));
-	
+
 
 }
 

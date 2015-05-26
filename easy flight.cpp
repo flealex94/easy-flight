@@ -4,26 +4,13 @@
 #include "stdlib.h"
 #include <time.h>
 #include <ctype.h>
-FILE* log;
+
 FILE* flaero;
 FILE* marfuri;
-FILE* batch;
 FILE* program;
-
-struct picker {
-	char* comenzi[25];
-	void(*functii[26])(char*);
-	int getpoz(char* com, char** comenzi) {
-		int poz = 0;
-		while (comenzi[poz] != '\0' && strcmp(com, comenzi[poz]) != 0 && poz < 25)
-			poz++;
-		if (comenzi[poz] == '\0') poz = 25;//
-		return poz;
-	}
-	void(*getfunk(char* com))(char*) {
-		return functii[getpoz(com, comenzi)];
-	}
-}picker;
+FILE* pasageri;
+FILE* batch;
+FILE* log;
 char* copiaza(char* string) {
 	char* nou = (char*)malloc(sizeof(char)*(strlen(string) + 1));
 	strcpy(nou, string);
@@ -32,64 +19,16 @@ char* copiaza(char* string) {
 void ftimestamp() {
 	time_t ltime; /* calendar time */
 	ltime = time(NULL); /* get current cal time */
-	char* time;
+	char* time = nullptr;
 	time = copiaza(asctime(localtime(&ltime)));
 	time[strlen(time) - 1] = '\0';
-	fprintf(log, "%s: ", time);
+	fprintf_s(log, "%s: ", time);
 }
 void echo(char* msg) {
-	printf(msg);
+	char* mes = copiaza(msg);
+	printf(mes);
 	ftimestamp();
-	fprintf(log, msg);
-}
-void notfound(char* somestring) {
-	printf("404: nu exista functia!\n");
-}
-void somefunk(char* somestring) {
-	printf("somefunk: %s\n", somestring);
-}
-void otherfunk(char* somestring) {
-	printf("otherfunk: %s\n", somestring);
-}
-void thefunk(char* somestring) {
-	printf("thefunk: %s\n", somestring);
-}
-void initPicker() { //aici se initializeaza pickerul cu comenzi si functiile aferente
-	for (int i = 0; i < 25; i++) {
-		picker.comenzi[i] = nullptr; //(char*)malloc(7);
-		picker.functii[i] = nullptr;
-	}
-	picker.functii[25] = notfound;
-	//am adaugat 3 functii dummy la vector, cu denumiri random
-	picker.comenzi[0] = new char[7];
-	strcpy(picker.comenzi[0], "asdf");
-	picker.functii[0] = somefunk;
-
-	picker.comenzi[1] = new char[7];
-	strcpy(picker.comenzi[1], "qwer");
-	picker.functii[1] = otherfunk;
-
-	picker.comenzi[2] = new char[7];
-	strcpy(picker.comenzi[2], "zxcv");
-	picker.functii[2] = thefunk;
-	//pe masura ce vor fi gata, trebuie adaugate functiile!
-}
-char* upcase(char* string) {
-	char* upcase = (char*)malloc(strlen(string) + 1);
-	char* ptr = upcase;
-	while (*string)
-		*(ptr++) = toupper(*(string++));
-	*ptr = '\0';
-	return upcase;
-}
-void interp(char* comline) {
-	//primeste un linia cu intreaga comanda ca si string
-	char* aux = (char*)malloc(strlen(comline) + 1); strcpy(aux, comline);
-	//concateneaza numele comenzii si cel al modulului pentru a putea cauta functia 
-	char* com = upcase(strtok(aux, " \t")); aux = upcase(strtok(nullptr, " \t"));
-	strcat(com, aux);
-	char* data = strtok(nullptr, ""); //ce mai ramane din string reprezinta date de intrare pentru functie
-	picker.getfunk(com)(data);
+	fprintf(log, mes);
 }
 
 struct linieFAV {
@@ -123,21 +62,37 @@ NodFAV* creareNodFAV(linieFAV* fav) {
 	nou->next = nou->prev = nullptr;
 	return nou;
 }
-void inserareFAV(NodFAV* nod) {
-	if (listaDublaCirculara == nullptr) {
-		listaDublaCirculara = nod;
-		listaDublaCirculara->next = listaDublaCirculara->prev = listaDublaCirculara;
-	} else {
-		nod->next = listaDublaCirculara;
-		listaDublaCirculara->prev->next = nod;
-		nod->prev = listaDublaCirculara->prev;
-		listaDublaCirculara->prev = nod;
+NodFAV* cautaElementFAV(char* id) {
+	if (listaDublaCirculara != nullptr) {
+		NodFAV* origine = listaDublaCirculara;
+		do {
+			if (strcmp(listaDublaCirculara->infoUtil->idAeronava, id) == 0)
+				return listaDublaCirculara;
+			listaDublaCirculara = listaDublaCirculara->next;
+		} while (listaDublaCirculara != origine);
 	}
+
+	return nullptr;
+}
+void inserareFAV(NodFAV* nod) {
+	NodFAV* elem = cautaElementFAV(nod->infoUtil->idAeronava);
+	if (elem != nullptr){
+		if (listaDublaCirculara == nullptr) {
+			listaDublaCirculara = nod;
+			listaDublaCirculara->next = listaDublaCirculara->prev = listaDublaCirculara;
+		} else {
+			nod->next = listaDublaCirculara;
+			listaDublaCirculara->prev->next = nod;
+			nod->prev = listaDublaCirculara->prev;
+			listaDublaCirculara->prev = nod;
+		}
+	} else echo("\tElement duplicat!!\n");
 }
 void initializareFAV() {
-	flaero = fopen("flaero.txt", "r");
+	echo("Initializez FAV...\n");
+	flaero = fopen("flaero.txt", "rt");
 	if (!flaero) {
-		printf("Nu se poate deschide fisierul!\n");
+		echo("\tNu se poate deschide fisierul!\n");
 	} else {
 		int tipAero, nrLocuri; float greutateMaxima;
 		char idAeronava[20];
@@ -152,29 +107,23 @@ void initializareFAV() {
 
 			fscanf(flaero, "%s", idAeronava);
 		}
+		fclose(flaero);
 	}
 }
-NodFAV* cautaElementFAV(char* id) {
-	if (listaDublaCirculara != nullptr) {
-		NodFAV* origine = listaDublaCirculara;
-		do {
-			if (strcmp(listaDublaCirculara->infoUtil->idAeronava, id) == 0)
-				return listaDublaCirculara;
-			listaDublaCirculara = listaDublaCirculara->next;
-		} while (listaDublaCirculara != origine);
-	}
 
-	return nullptr;
+void afisareLinieFAV(linieFAV* fav) {
+	char msg[54];
+	sprintf(msg, "\t%s %lf %i %d\n", fav->idAeronava, fav->greutateMaxima, fav->tipAero, fav->nrLocuri);
+	echo(msg);
 }
 void afisareFAV() {
 	if (listaDublaCirculara != nullptr) {
 		NodFAV* origine = listaDublaCirculara;
 		do {
-			linieFAV* linie = listaDublaCirculara->infoUtil;
-			printf("\t%s %lf %i %d\n", linie->idAeronava, linie->greutateMaxima, linie->tipAero, linie->nrLocuri);
+			afisareLinieFAV(listaDublaCirculara->infoUtil);
 			listaDublaCirculara = listaDublaCirculara->next;
 		} while (listaDublaCirculara != origine);
-	} else printf("\nLista goala\n");
+	} else echo("\tLista goala\n");
 }
 void afisareInversFAV() {
 	if (listaDublaCirculara != nullptr) {
@@ -191,10 +140,8 @@ void findFAV(char* id) {
 	NodFAV* elem = cautaElementFAV(id);
 	if (elem != nullptr) {
 		linieFAV* linie = elem->infoUtil;
-		char msg[100];
-		sprintf(msg, "\t  %s %lf %i %d\n", linie->idAeronava, linie->greutateMaxima, linie->tipAero, linie->nrLocuri);
-		echo(msg);
-	} else echo("\nNu exista elementul\n");
+		afisareLinieFAV(linie);
+	} else echo("\tNu exista elementul\n");
 }
 
 void addFAV(char* DATE) {
@@ -212,7 +159,7 @@ void addFAV(char* DATE) {
 	linieFAV* fav = creareFAV(idA, tipA, nrL, grM);
 	NodFAV* nod = creareNodFAV(fav);
 	inserareFAV(nod);
-	echo("Avion adaugat!\n");
+	echo("\tAvion adaugat!\n");
 }
 
 void updateFAV(char* DATE) {
@@ -231,8 +178,8 @@ void updateFAV(char* DATE) {
 		linie->nrLocuri = atoi(aux);
 		aux = strtok(NULL, " \t");
 		linie->greutateMaxima = atof(aux);
-		echo("Date avion actualizate!\n");
-	} else echo("\nElementul nu a fost gasit!\n");
+		echo("\tDate avion actualizate!\n");
+	} else echo("\tElementul nu a fost gasit!\n");
 }
 
 void deleteFAV(char* id) {
@@ -244,8 +191,8 @@ void deleteFAV(char* id) {
 		free(elem->infoUtil->idAeronava);
 		free(elem->infoUtil);
 		free(elem);
-		echo("Avion sters!\n");
-	} else echo("\nNu exista elementul\n");
+		echo("\tAvion sters!\n");
+	} else echo("\tNu exista elementul\n");
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -267,7 +214,7 @@ struct HashRUZ {
 	(NodRUZ*)* listaRUZ;
 	int dim;
 };
-HashRUZ hashTable;
+HashRUZ tabelaDispersie;
 
 linieRUZ* creareRUZ(char* idZbor, char* idAvion, int oraPlecare, int oraSosire, char* orasPlecare,
 					char* orasSosire, float costuriTotaleRuta) {
@@ -298,28 +245,29 @@ void inserareNodRUZ(NodRUZ* &lista, NodRUZ* nod) {
 	}
 }
 void alocaMemorieRUZ() {
-	hashTable.dim = 20;
-	hashTable.listaRUZ = (NodRUZ**)malloc(sizeof(NodRUZ*)*hashTable.dim);
-	for (int i = 0; i < hashTable.dim; i++) {
-		hashTable.listaRUZ[i] = nullptr;
+	tabelaDispersie.dim = 20;
+	tabelaDispersie.listaRUZ = (NodRUZ**)malloc(sizeof(NodRUZ*)*tabelaDispersie.dim);
+	for (int i = 0; i < tabelaDispersie.dim; i++) {
+		tabelaDispersie.listaRUZ[i] = nullptr;
 	}
 }
 int functieHashRUZ(char* idZbor) {
 	int sum = 0;
 	while (*idZbor) {
-		sum = sum*hashTable.dim + *(idZbor++);
+		sum = sum*tabelaDispersie.dim + *(idZbor++);
 	}
-	return sum % hashTable.dim;
+	return sum % tabelaDispersie.dim;
 }
 void inserareRUZ(NodRUZ* nod) {
 	int poz = functieHashRUZ(nod->info->idZbor);
-	NodRUZ* lista = hashTable.listaRUZ[poz];
+	NodRUZ* lista = tabelaDispersie.listaRUZ[poz];
 	inserareNodRUZ(lista, nod);
-	hashTable.listaRUZ[poz] = lista;
+	tabelaDispersie.listaRUZ[poz] = lista;
 }
-void intilializareRUZ() {
+void initializareRUZ() {
+	echo("Initializez RUZ...\n");
 	alocaMemorieRUZ();
-	program = fopen("program.txt", "r");
+	program = fopen("program.txt", "rt");
 	if (!program) {
 		echo("\nFisierul nu a fost gasit!\n");
 	} else {
@@ -340,6 +288,7 @@ void intilializareRUZ() {
 
 			fscanf(program, "%s", idZbor);
 		}
+		fclose(program);
 	}
 }
 void afisareLinieRUZ(linieRUZ* ruz) {
@@ -351,22 +300,22 @@ void afisareLinieRUZ(linieRUZ* ruz) {
 	} /*else echo("\Element vid!\n");*/
 }
 void afisareRUZ() {
-	if (hashTable.listaRUZ != nullptr) {
-		for (int i = 0; i < hashTable.dim; i++) {
-			NodRUZ* ruz = hashTable.listaRUZ[i];
+	if (tabelaDispersie.listaRUZ != nullptr) {
+		for (int i = 0; i < tabelaDispersie.dim; i++) {
+			NodRUZ* ruz = tabelaDispersie.listaRUZ[i];
 			while (ruz) {
 				afisareLinieRUZ(ruz->info);
 				ruz = ruz->next;
 			}
 		}
-	} else echo("\nNu exista nicio ruta de zbor!\n");
+	} else echo("\tNu exista nicio ruta de zbor!\n");
 }
 NodRUZ* cautaElementRUZ(char* idZbor) {
 	int poz = functieHashRUZ(idZbor);
-	NodRUZ* list = hashTable.listaRUZ[poz];
+	NodRUZ* list = tabelaDispersie.listaRUZ[poz];
 	while (list != nullptr && strcmp(list->info->idZbor, idZbor) != 0)
 		list = list->next;
-	if (strcmp(list->info->idZbor, idZbor) == 0)
+	if ((list != nullptr) && (strcmp(list->info->idZbor, idZbor) == 0))
 		return list;
 	else return nullptr;
 }
@@ -375,11 +324,8 @@ void findRUZ(char* idZbor) {
 	NodRUZ* elem = cautaElementRUZ(idZbor);
 	if (elem != nullptr) {
 		linieRUZ* linie = elem->info;
-		char msg[54];
-		sprintf(msg, "\t%s %s %d %d %s %s %f\n", linie->idZbor, linie->idAvion, linie->oraPlecare, linie->oraSosire,
-				linie->orasPlecare, linie->orasSosire, linie->costuriTotaleRuta);
-		echo(msg);
-	} else echo("\nNu exista aceasta ruta de zbor!\n");
+		afisareLinieRUZ(linie);
+	} else echo("\tNu exista aceasta ruta de zbor!\n");
 }
 
 void addRUZ(char* DATE) {
@@ -405,7 +351,7 @@ void updateRUZ(char* DATE) {
 	char* dat = copiaza(DATE);
 	char* idZbor = strtok(dat, " \t");
 	int poz = functieHashRUZ(idZbor);
-	NodRUZ* lista = hashTable.listaRUZ[poz];
+	NodRUZ* lista = tabelaDispersie.listaRUZ[poz];
 	NodRUZ* elem = cautaElementRUZ(idZbor);
 	if (elem != nullptr) {
 		linieRUZ* linie = elem->info;
@@ -416,28 +362,28 @@ void updateRUZ(char* DATE) {
 		aux = strtok(NULL, " \t"); free(linie->orasSosire);	linie->orasSosire = copiaza(aux);
 		aux = strtok(NULL, " \t"); linie->costuriTotaleRuta = atof(aux);
 
-		echo("Ruta de zbor actualizata!\n");
-	} else echo("\nNu exista ruta de zbor cu acest id!\n");
+		echo("\tRuta de zbor actualizata!\n");
+	} else echo("\tNu exista ruta de zbor cu acest id!\n");
 }
 
 void deleteRUZ(char* idZbor) {
 	NodRUZ* elem = cautaElementRUZ(idZbor);
 	if (elem != nullptr) {
 		int poz = functieHashRUZ(idZbor);
-		NodRUZ* lista = hashTable.listaRUZ[poz];
+		NodRUZ* lista = tabelaDispersie.listaRUZ[poz];
 		if (lista == elem) {
-			hashTable.listaRUZ[poz] = elem->next;
+			tabelaDispersie.listaRUZ[poz] = elem->next;
 		} else {
 			NodRUZ* tmp = lista;
 			while ((tmp->next != nullptr) && (tmp->next != elem)) {
 				tmp = tmp->next;
 			}
 			tmp->next = tmp->next->next;
-			hashTable.listaRUZ[poz] = lista;
+			tabelaDispersie.listaRUZ[poz] = lista;
 			//free(tmp->info->idAvion); free(tmp->info->idZbor); free(tmp->info->orasPlecare); free(tmp->info->orasSosire); free(tmp->info); free(tmp);
 		}
 		echo("Ruta de zbor stearsa!\n");
-	} else echo("\nNu exista ruta de zbor cu acest id!\n");
+	} else echo("\tNu exista ruta de zbor cu acest id!\n");
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -449,19 +395,14 @@ struct linieCAR {
 	float nivelRisc;
 	float costTotal;
 };
-struct NodAVL {
+struct NodCAR {
 	linieCAR* car;
 	int ge;
-	NodAVL* st;
-	NodAVL* dr;
+	NodCAR* st;
+	NodCAR* dr;
 };
-NodAVL* arboreAVL = NULL;
+NodCAR* arboreAVL = NULL;
 
-char* copiaza(char* string) {
-	char* nou = (char*)malloc(sizeof(char)*(strlen(string) + 1));
-	strcpy(nou, string);
-	return nou;
-}
 linieCAR* creareCAR(int idR, char* idZ, float grM, float nvR) {
 	linieCAR* car = (linieCAR*)malloc(sizeof(linieCAR));
 	car->idRezervare = idR;
@@ -475,28 +416,28 @@ linieCAR* creareCAR(int idR, char* idZ, float grM, float nvR) {
 int max(int a, int b) {
 	return (a > b ? a : b);
 }
-int H(NodAVL* rad) {
+int H(NodCAR* rad) {
 	if (rad)	return 1 + max(H(rad->st), H(rad->dr));
 	else		return 0;
 }
-void gradEchilibru(NodAVL* rad) {
+void gradEchilibru(NodCAR* rad) {
 	if (rad)	rad->ge = H(rad->dr) - H(rad->st);
 }
-NodAVL* rotatieSimplaStanga(NodAVL* pivot, NodAVL* fiuDR) {
+NodCAR* rotatieSimplaStanga(NodCAR* pivot, NodCAR* fiuDR) {
 	pivot->dr = fiuDR->st;
 	gradEchilibru(pivot);
 	fiuDR->st = pivot;
 	gradEchilibru(fiuDR);
 	return fiuDR;
 }
-NodAVL* rotatieSimplaDreapta(NodAVL* pivot, NodAVL* fiuSt) {
+NodCAR* rotatieSimplaDreapta(NodCAR* pivot, NodCAR* fiuSt) {
 	pivot->st = fiuSt->dr;
 	gradEchilibru(pivot);
 	fiuSt->dr = pivot;
 	gradEchilibru(fiuSt);
 	return fiuSt;
 }
-NodAVL* rotatieDublaStDr(NodAVL* pivot, NodAVL* fiuSt) {
+NodCAR* rotatieDublaDreapta(NodCAR* pivot, NodCAR* fiuSt) {
 	pivot->st = rotatieSimplaStanga(fiuSt, fiuSt->dr);
 	gradEchilibru(pivot);
 	fiuSt = pivot->st;
@@ -504,7 +445,7 @@ NodAVL* rotatieDublaStDr(NodAVL* pivot, NodAVL* fiuSt) {
 	gradEchilibru(fiuSt);
 	return fiuSt;
 }
-NodAVL* rotatieDublaDrSt(NodAVL* pivot, NodAVL* fiuDr) {
+NodCAR* rotatieDublaStanga(NodCAR* pivot, NodCAR* fiuDr) {
 	pivot->dr = rotatieSimplaDreapta(fiuDr, fiuDr->st);
 	gradEchilibru(pivot);
 	fiuDr = pivot->dr;
@@ -512,17 +453,88 @@ NodAVL* rotatieDublaDrSt(NodAVL* pivot, NodAVL* fiuDr) {
 	gradEchilibru(fiuDr);
 	return fiuDr;
 }
-void inserareAVL(NodAVL* &rad, linieCAR* carg) {
-	if (rad) {
+NodCAR* echilibrare(NodCAR *p){
+	NodCAR *w;
+	gradEchilibru(p);//se calculeaza factorul de echilibru a nodului curent p
+	if (p->ge == -2){// daca p nod este critic
+		w = p->st; // atunci w este copilul stanga al lui p
+		if (w->ge == 1)// si daca acesta are factorul de echilibru 1
+			p = rotatieDublaDreapta(p, p->st);// atunci se face dubla rotatie dreapta
+		else//altfel se face o simpla rotatie dreapta
+			p = rotatieSimplaDreapta(p, p->st);
+	}
+	else
+		if (p->ge == 2){//daca p nod este critic
+			w = p->dr;//w este copilul dreapta al nodului curent p
+			if (w->ge == -1)// si acesta are factorul de ech -1
+				p = rotatieDublaStanga(p, p->dr);//se face o dubla rotatie stanga
+			else//altfel se face o simpla rotatie stanga
+				p = rotatieSimplaStanga(p, p->dr);
+		}
+	return p;
+}
+
+NodCAR* stergere(NodCAR *p, int x){
+	NodCAR *q, *r, *w;
+	if (p != NULL)//daca nodul curent este diferit de NULL
+		if (x<p->car->idRezervare) //cheia care se doreste stearsa este mai mica decat informatia din nod
+			p->st = stergere(p->st, x); // se cauta cheia de sters in subarborele stang al nodului curent
+		else
+			if (x>p->car->idRezervare) // daca cheia este mai mare
+				p->dr = stergere(p->dr, x);// se cauta in subarborele drept
+			else{
+				//daca cheia este egala cu informatia din nodul curent
+				q = p;//un nod q devine p
+				if (q->dr == NULL) // daca copilul drept al lui q eate NULL
+					p = q->st;// atunci p devine q->stanga
+				else if (q->st == NULL) //altfel daca copilul stang al lui q este NULL
+						p = q->dr;// p devine q->dreapta
+					 else{
+						w = q->st;//altfel w este copilul stanga al lui q
+						r = q;// r devine q
+						if (w->dr != NULL) { // daca copilul drept al lui w nun este NULL
+							while (w->dr != NULL){
+								r = w;
+								w = w->dr;
+							}
+							p->car->idRezervare = w->car->idRezervare;
+							q = w;
+							r->dr = w->st;
+							r = p->st;
+							w = w->st;
+							if (r != NULL)
+								while ((r != w) && (r != NULL)){
+									r = echilibrare(r);
+									r = r->dr;
+								}
+						}
+						else{
+							p->car->idRezervare = w->car->idRezervare;
+							p->st = w->st;
+							q = w;
+						}
+					}
+					delete(q);// se sterge q
+			}
+			if (p != NULL)
+				p = echilibrare(p);// se echilibreaza p daca nu este NULL
+			return p;
+}
+
+void inserareCAR(NodCAR* &rad, linieCAR* carg) {
+	if (rad != nullptr) {
 		if (rad->car->idRezervare < carg->idRezervare)
-			inserareAVL(rad->dr, carg);
+			inserareCAR(rad->dr, carg);
 		else
 			if (rad->car->idRezervare > carg->idRezervare)
-				inserareAVL(rad->st, carg);
-			else
-				printf("Elementul %d este deja prezent in arboreAVL.\n", carg->idRezervare);
+				inserareCAR(rad->st, carg);
+			else{
+				char msg[30];
+				sprintf(msg, "\tElementul %d este deja prezent in arboreAVL.\n", carg->idRezervare);
+				echo(msg);
+			}
 	} else {
-		rad = (NodAVL*)malloc(sizeof(NodAVL));
+		rad = (NodCAR*)malloc(sizeof(NodCAR));
 		rad->car = carg;
 		rad->dr = NULL;
 		rad->st = NULL;
@@ -531,20 +543,20 @@ void inserareAVL(NodAVL* &rad, linieCAR* carg) {
 	gradEchilibru(rad);
 	if (rad->ge == 2)
 		if (rad->ge == -1)
-			rad = rotatieDublaDrSt(rad, rad->dr);
+			rad = rotatieDublaStanga(rad, rad->dr);
 		else
 			rad = rotatieSimplaStanga(rad, rad->dr);
 	else
 		if (rad->ge == -2) {
 			if (rad->ge == 1)
-				rad = rotatieDublaStDr(rad, rad->st);
+				rad = rotatieDublaDreapta(rad, rad->st);
 			else
 				rad = rotatieSimplaDreapta(rad, rad->st);
 		}
-
 }
 void initializareCAR() {
-	marfuri = fopen("marfuri.txt", "r");
+	echo("Initializez CAR...\n");
+	marfuri = fopen("marfuri.txt", "rt");
 	if (!marfuri) {
 		printf("Nu se poate deschide fisierul!\n");
 	} else {
@@ -558,37 +570,47 @@ void initializareCAR() {
 			fscanf(marfuri, "%f", &greutateMarfa);
 			fscanf(marfuri, "%f", &nivelRisc);
 			linieCAR* car = creareCAR(idRezervare, idZbor, greutateMarfa, nivelRisc);
-			inserareAVL(arboreAVL, car);
+			inserareCAR(arboreAVL, car);
 
 			fscanf(marfuri, "%d", &idRezervare);
 		}
+		fclose(marfuri);
 	}
 }
-NodAVL* cautaElementCAR(int id) {
-	if (arboreAVL != NULL) {
-		NodAVL* origine = arboreAVL;
-		do {
-			if (arboreAVL->car->idRezervare == id)
-				return arboreAVL;
-			if (arboreAVL->car->idRezervare > id)
-				arboreAVL = arboreAVL->st;
-			else arboreAVL = arboreAVL->dr;
-		} while (arboreAVL != origine);
+NodCAR* cautaElementCAR(NodCAR* rad, int id) {
+	if (rad == nullptr)
+		return nullptr;
+	else {
+		if (rad->car->idRezervare == id)
+			return rad;
+		else {
+			if (rad->car->idRezervare > id)
+				cautaElementCAR(rad->st, id);
+			else cautaElementCAR(rad->dr, id);
+		}
 	}
 }
 void afisareLinieCAR(linieCAR* car) {
-	printf("%d %s %f %f %f\n", car->idRezervare, car->idZbor, car->greutateMarfa, car->nivelRisc, car->costTotal);
+	char msg[54];
+	sprintf(msg, "%d %s %f %f $%f\n", car->idRezervare, car->idZbor, car->greutateMarfa, car->nivelRisc, car->costTotal);
+	echo(msg);
 }
-void afisareCAR() {
+void afisareCAR(NodCAR* rad) { //SRD
 	if (rad) {
-		SRD(rad->st);
-		afisareCAR(rad->car);
-		SRD(rad->dr);
+		afisareCAR(rad->st);
+		afisareLinieCAR(rad->car);
+		afisareCAR(rad->dr);
 	}
 }
 
-void findCAR(char* DATE) {
-
+void findCAR(char* id) {
+	int idRezervare = atoi(id);
+	NodCAR* elem = cautaElementCAR(arboreAVL, idRezervare);
+	if (elem != nullptr) {
+		linieCAR* linie = elem->car;
+		afisareLinieCAR(linie);
+	}
+	else echo("\tNu exista aceasta ruta de zbor!\n");
 }
 
 void addCAR(char* DATE) {
@@ -603,8 +625,8 @@ void addCAR(char* DATE) {
 	aux = strtok(NULL, " \t");
 	nivelRisc = atof(aux);
 	linieCAR* car = creareCAR(idRezervare, idZbor, greutateMarfa, nivelRisc);
-	inserareAVL(arboreAVL, car);
-	//echo("Gestiune cargo adaugata!\n");
+	inserareCAR(arboreAVL, car);
+	echo("\tGestiune cargo adaugata!\n");
 }
 
 void updateCAR(char* DATE) {
@@ -614,7 +636,7 @@ void updateCAR(char* DATE) {
 	float greutateMarfa, nivelRisc, costTotal;
 	aux = strtok(dat, " \t");
 	id = atoi(aux);
-	NodAVL* elem = cautaElementCAR(id);
+	NodCAR* elem = cautaElementCAR(arboreAVL, id);
 	if (elem != nullptr) {
 		linieCAR* linie = elem->car;
 		linie->idRezervare = id;
@@ -626,41 +648,430 @@ void updateCAR(char* DATE) {
 		aux = strtok(NULL, " \t");
 		linie->nivelRisc = atof(aux);
 		linie->costTotal = linie->costTotal*linie->nivelRisc * 7;
-		echo("Date gestiune cargo actualizate!\n");
-	} else echo("\nElementul nu a fost gasit!\n");
+		echo("\tDate gestiune cargo actualizate!\n");
+	} else echo("\tElementul nu a fost gasit!\n");
 }
 
-void deleteCAR(char* DATE) {
+void deleteCAR(char* id) {
+	int idRezervare = atoi(id);
+	NodCAR* ele = cautaElementCAR(arboreAVL, idRezervare), *elem=nullptr;
+	if (elem != nullptr) {
+		elem = stergere(elem, idRezervare);
+		echo("\tRezervare stearsa!\n");
+	}
+	else echo("\tRezervare stearsa!\n");
+}
+
+void checkCAR(char* idZbor) {
 
 }
 
+void costsCAR(char* idZbor) {
+
+}
+
+////////////////////////////////////////////////////////////////////////////
+
+struct linieREP {
+	unsigned int locZbor;
+	float costBilet;
+	int idRezervare;
+	char* idZbor;
+	char* numeClient;
+};
+
+struct ListaSREP {
+	linieREP* info;
+	ListaSREP* nextS;
+};
+struct ListaPREP {
+	linieREP* info;
+	ListaPREP* nextP;
+	ListaSREP* listaNoduri;
+};
+ListaPREP* graf = NULL;
+int contor = 5;
+ListaPREP* creareNodPREP(linieREP* rep) {
+	ListaPREP* nou = (ListaPREP*)malloc(sizeof(ListaPREP));
+	nou->info = rep;
+	nou->nextP = NULL;
+	nou->listaNoduri = NULL;;
+	return nou;
+}
+ListaSREP* creareNodSREP(linieREP* rep) {
+	ListaSREP* nou = (ListaSREP*)malloc(sizeof(ListaSREP));
+	nou->info = rep;
+	nou->nextS = NULL;
+	return nou;
+}
+linieREP* creareREP(int idRez, char* idZbor, char* nume, int loc, float cost) {
+	linieREP* rep = (linieREP*)malloc(sizeof(linieREP));
+	rep->idRezervare = idRez;
+	rep->idZbor = copiaza(idZbor);
+	rep->numeClient = copiaza(nume);
+	rep->locZbor = loc;
+	rep->costBilet = cost;
+	return rep;
+}
+ListaPREP* inserareLPREP(ListaPREP*& graf, linieREP* rep) {
+	if (graf == NULL) {
+		graf = creareNodPREP(rep);
+		return graf;
+	}
+	else {
+		ListaPREP* temp = graf;
+		while (temp->nextP != NULL)
+			temp = temp->nextP;
+		temp->nextP = creareNodPREP(rep);
+		return temp->nextP;
+	}
+}
+ListaSREP* inserareLSREP(ListaSREP* noduriREP, linieREP* rep) {
+	if (noduriREP == NULL)
+		noduriREP = creareNodSREP(rep);
+	else {
+		ListaSREP* temp = noduriREP;
+		while (temp->nextS)
+			temp = temp->nextS;
+		temp->nextS = creareNodSREP(rep);
+	}
+	return noduriREP;
+}
+ListaSREP* cauta(ListaSREP* srep) {
+	return srep;
+}
+ListaPREP* cautaElementREP(int id) {
+	if (graf != NULL) {
+		ListaPREP* origine = graf;
+		do {
+			if (graf->info->idRezervare == id)
+				return graf;
+			else if (graf->listaNoduri->info->idRezervare == id)
+				cauta(graf->listaNoduri);
+			graf = graf->nextP;
+		} while (graf != origine);
+	}
+	return nullptr;
+}
+void findREP(char* id){
+
+}
+
+void addREP(char* date) {
+	char* dat = copiaza(date);
+	char* aux;
+	int idR, loc;
+	float cost;
+	aux = strtok(dat, " \t");
+	idR = atoi(aux);
+	char* idZ = strtok(NULL, " \t");
+	char* nume = strtok(NULL, " \t");
+	aux = strtok(NULL, " \t");
+	loc = atoi(aux);
+	aux = strtok(NULL, " \t");
+	cost = atof(aux);
+
+	linieREP* rep = creareREP(idR, idZ, nume, loc, cost);
+	inserareLPREP(graf, rep);
+	echo("Adaugare efectuata cu succes!\n");
+}
+
+void updateREP(char* date) {
+	char* dat = copiaza(date);
+	char* aux;
+	int idR;
+	aux = strtok(dat, " \t");
+	idR = atoi(aux);
+	ListaPREP* elem = cautaElementREP(idR);
+	if (elem != nullptr) {
+		linieREP* linie = elem->info;
+		char* idZ = strtok(NULL, " \t");
+		free(linie->idZbor);
+		linie->idZbor = copiaza(idZ);
+		char* nume = strtok(NULL, " \t");
+		free(linie->numeClient);
+		linie->numeClient = copiaza(nume);
+		aux = strtok(NULL, " \t");
+		linie->locZbor = atoi(aux);
+		aux = strtok(NULL, " \t");
+		linie->costBilet = atof(aux);
+		echo("Date modul rezervare actualizate!\n");
+	}
+	else
+		echo("Elementul nu a fost gasit!");
+}
+
+void deleteREP(char* id){
+
+}
+
+void checkREP(char* id){
+
+}
+
+void costsREP(char* id){
+
+}
+
+void initializareREP(FILE* f, ListaPREP* rep) {
+	
+	if (!f) {
+		echo("\tNu se poate deschide fisierul!");
+	}
+	else {
+		int idRez;
+		char idZbor[100];
+		char nume[100];
+		int loc;
+		float cost; int aux;
+		fscanf(f, "%d", &idRez);
+		while (!feof(f))
+		{
+			fscanf(f, "%s", &idZbor);
+			fscanf(f, "%s", &nume);
+			fscanf(f, "%d", &loc);
+			fscanf(f, "%f", &cost);
+			fscanf(f, "%d", &aux);
+			linieREP* rep = creareREP(idRez, idZbor, nume, loc, cost);
+			//for (int i = 0; i < contor; i++) {
+			ListaPREP* temp = inserareLPREP(graf, rep);
+			while (fscanf(f, "%d", &idRez) && fscanf(f, "%s", &idZbor) &&
+				fscanf(f, "%s", &nume) && fscanf(f, "%d", &loc) &&
+				fscanf(f, "%f", &cost) && aux != -1) {
+				linieREP* rep1 = creareREP(idRez, idZbor, nume, loc, cost);
+				ListaSREP* noduri = temp->listaNoduri;
+				noduri = inserareLSREP(noduri, rep1);
+				temp->listaNoduri = noduri;
+				fscanf(f, "%d", &aux);
+			}
+			//}
+			fscanf(f, "%d", &idRez);
+		}
+	}
+}
+
+void afisareREP(ListaPREP* graf) {
+	while (graf) {
+		printf("Lista principala: %d %s %s %d %f \n", graf->info->idRezervare, graf->info->idZbor,
+			graf->info->numeClient, graf->info->locZbor, graf->info->costBilet);
+		ListaSREP* noduri = graf->listaNoduri;
+		while (noduri) {
+			printf("Lista secundara: %d %s %s %d %f \n", noduri->info->idRezervare, noduri->info->idZbor,
+				noduri->info->numeClient, noduri->info->locZbor, noduri->info->costBilet);
+			noduri = noduri->nextS;
+		}
+		graf = graf->nextP;
+	}
+}
+
+struct picker {
+	char* comenzi[22];
+	void(*functii[22])(char*);
+	int getpoz(char* com, char** comenzi) {
+		int poz = 0;
+		while (strcmp(com, comenzi[poz]) != 0 && poz < 21)
+			poz++;
+		return poz;
+	}
+	void(*getfunk(char* com))(char*) {
+		return functii[getpoz(com, comenzi)];
+	}
+}picker;
+void notFound(char* somestring) {
+	echo("\n404: Nu exista functia!\n");
+}
+
+void actualizareFAV() {
+	flaero = fopen("flaero.txt", "wt");
+	if (listaDublaCirculara != nullptr) {
+		NodFAV* origine = listaDublaCirculara;
+		do {
+			linieFAV* fav = listaDublaCirculara->infoUtil;
+			fprintf(flaero, "%s %lf %i %d\n", fav->idAeronava, fav->greutateMaxima, fav->tipAero, fav->nrLocuri);
+			listaDublaCirculara = listaDublaCirculara->next;
+		} while (listaDublaCirculara != origine);
+	}
+	fclose(flaero);
+}
+void actualizareCAR(NodCAR* rad) {
+	marfuri = fopen("marfuri.txt", "wt");
+	if (rad) {
+		actualizareCAR(rad->st);
+		linieCAR* car = rad->car;
+		fprintf(marfuri, "%d %s %f %f $%f\n", car->idRezervare, car->idZbor, car->greutateMarfa, car->nivelRisc, car->costTotal);
+		actualizareCAR(rad->dr);
+	}
+	fclose(marfuri);
+}
+void actualizareRUZ() {
+	program = fopen("program.txt", "wt");
+	if (tabelaDispersie.listaRUZ != nullptr) {
+		for (int i = 0; i < tabelaDispersie.dim; i++) {
+			NodRUZ* ruz = tabelaDispersie.listaRUZ[i];
+			while (ruz) {
+				linieRUZ* linie = ruz->info;
+				fprintf(program, "\t%s %s %d %d %s %s %f\n", linie->idZbor, linie->idAvion, linie->oraPlecare, linie->oraSosire,
+					linie->orasPlecare, linie->orasSosire, linie->costuriTotaleRuta);
+				ruz = ruz->next;
+			}
+		}
+	}
+	fclose(program);
+}
+void actualizareREP() {
+	//pasageri = fopen("pasageri.txt", "wt");
+
+	//fclose(pasageri);
+}
+void exit(char* somestring) {
+	actualizareFAV();
+	actualizareCAR(arboreAVL);
+	actualizareRUZ();
+	actualizareREP();
+	fclose(log);
+	exit(0);
+}
+void initPicker() { //aici se initializeaza pickerul cu comenzi si functiile aferente
+	for (int i = 0; i < 25; i++) {
+		picker.comenzi[i] = nullptr; //(char*)malloc(7);
+		picker.functii[i] = nullptr;
+	}
+	picker.functii[21] = notFound;
+
+	picker.comenzi[0] = copiaza("FINDFAV");
+	picker.functii[0] = findFAV;
+	picker.comenzi[1] = copiaza("ADDFAV");
+	picker.functii[1] = addFAV;
+	picker.comenzi[2] = copiaza("UPDATEFAV");
+	picker.functii[2] = updateFAV;
+	picker.comenzi[3] = copiaza("DELETEFAV");
+	picker.functii[3] = deleteFAV;
+	picker.comenzi[4] = copiaza("FINDRUZ");
+	picker.functii[4] = findRUZ;
+	picker.comenzi[5] = copiaza("ADDRUZ");
+	picker.functii[5] = addRUZ;
+	picker.comenzi[6] = copiaza("UPDATERUZ");
+	picker.functii[6] = updateRUZ;
+	picker.comenzi[7] = copiaza("DELETERUZ");
+	picker.functii[7] = deleteRUZ;
+	picker.comenzi[8] = copiaza("FINDCAR");
+	picker.functii[8] = findCAR;
+	picker.comenzi[9] = copiaza("ADDCAR");
+	picker.functii[9] = addCAR;
+	picker.comenzi[10] = copiaza("UPDATECAR");
+	picker.functii[10] = updateCAR;
+	picker.comenzi[11] = copiaza("DELETECAR");
+	picker.functii[11] = deleteCAR;
+	picker.comenzi[12] = copiaza("CHECKCAR");
+	picker.functii[12] = checkCAR;
+	picker.comenzi[13] = copiaza("COSTSCAR");
+	picker.functii[13] = costsCAR;
+	picker.comenzi[14] = copiaza("FINDREP");
+	picker.functii[14] = findREP;
+	picker.comenzi[15] = copiaza("ADDREP");
+	picker.functii[15] = addREP;
+	picker.comenzi[16] = copiaza("UPDATEREP");
+	picker.functii[16] = updateREP;
+	picker.comenzi[17] = copiaza("DELETEREP");
+	picker.functii[17] = deleteREP;
+	picker.comenzi[18] = copiaza("CHECKREP");
+	picker.functii[18] = checkREP;
+	picker.comenzi[19] = copiaza("COSTSREP");
+	picker.functii[19] = costsREP;
+	picker.comenzi[20] = copiaza("EXIT");
+	picker.functii[20] = exit;
+}
+char* upcase(char* string) {
+	if (string != nullptr){
+		char* upcase = (char*)malloc(strlen(string) + 1);
+		char* ptr = upcase;
+		while (*string)
+			*(ptr++) = toupper(*(string++));
+		*ptr = '\0';
+		return upcase;
+	}
+}
+void interp(char* comline) {
+	if (*comline != '\0'){
+		//primeste un linia cu intreaga comanda ca si string
+		char msg[77];
+		sprintf(msg, "\nExecut: %s\n", comline);
+		echo(msg);
+		char* aux = copiaza(comline);
+		//concateneaza numele comenzii si cel al modulului pentru a putea cauta functia 
+		char* com = upcase(strtok(aux, " \t")); aux = upcase(strtok(nullptr, " \t"));
+		if (com != '\0'){
+			strcat(com, aux);
+			char* data = strtok(nullptr, ""); //ce mai ramane din string reprezinta date de intrare pentru functie
+			picker.getfunk(com)(data);
+		}
+	}
+}
+void fetch() {
+	char comanda[99];
+	batch = fopen("batch.txt", "rt");
+	if (!batch)
+		echo("Nu exista fisier batch\n");
+	else{
+		while (fgets(comanda, sizeof(comanda), batch)) {
+			comanda[strlen(comanda) - 1] = '\0';
+			interp(comanda);
+		}
+		fclose(batch);
+	}
+}
 void iniTOT() {
 	log = fopen("log.txt", "wt");
+	initPicker();
 	initializareFAV();
-	intilializareRUZ();
-	intilializareRUZ();
+	initializareRUZ();
+	initializareCAR();
+	echo("Initializez REP...\n");
+	marfuri = fopen("pasgeri.txt", "rt");
+	initializareREP(pasageri,graf);
+	fetch();
 }
 void testare_module() {
-	findFAV("zxcv");
-	addFAV("aeronava4 1 34 456");
-	updateFAV("aeronava4 1 36 345");
-	deleteFAV("zxcv");
+	/*
+	find FAV aeronava4
+	add FAV aeronava6 1 34 456
+	update FAV aeronava4 1 36 345
+	delete FAV aeronava6
+	find ruz zbor1
+	add RUZ zbor5 aeronava3 11 12 sibiu valcea 1024.3
+	update RUZ zbor2 aeronava2 16 18 sibiu hunedoara 99.2
+	delete RUZ zbor5
+	find CAR 5 ana 3 5
+	add CAR 5 ana 3 5
+	update CAR 5 maria 30 4
+	delete CAR 5 ana 3 5
+	find CAR 13
+	add CAR 16 zbor4 77.2 1.5
+	update CAR 13 zbor3 77.2 1.5
+	delete CAR 5
+
+	*/
 	afisareFAV();
-
-	findRUZ("hash3");
-	addRUZ("hash10 13asdf 12 15 bucuresti valcea 256.6");
-	updateRUZ("hash1 11asdf 13 17 bucur valcea 256.6");
-	deleteRUZ("hash3");
 	afisareRUZ();
-
-	findCAR("5 ana 3 5");
-	addCAR("5 ana 3 5");
-	updateCAR("5 maria 30 4");
-	deleteCAR("5 ana 3 5");
-	afisareCAR();
+	afisareCAR(arboreAVL);
+	afisareREP(graf);
 }
-
+void asteapta_comanda(){
+	char comanda[34];
+	printf("Indroduceti o comanda (sau Ctrl+Z): ");
+	while (fgets(comanda, sizeof(comanda), stdin)) {
+		comanda[strlen(comanda) - 1] = '\0';
+		interp(comanda);
+		printf("Indroduceti comanda (sau Ctrl+Z): ");
+	}
+	exit("~~~~~~ !!GATAAA!! ~~~~~~~");
+}
 void main() {
 	iniTOT();
-	testare_module();
+	//testare_module();
+	//asteapta_comanda();
+	addREP("8 jjj lijd 9 23.3");
+	afisareREP(graf);
+	/*deleteFAV("aeronava1");
+	exit("gata");*/
 }

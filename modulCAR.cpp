@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <ctype.h>
-
+FILE* marfuri;
 struct linieCAR {
 	int idRezervare;
 	char* idZbor;
@@ -18,7 +18,6 @@ struct NodAVL {
 	NodAVL* st;
 	NodAVL* dr;
 };
-
 NodAVL* arbore = NULL;
 
 char* copiaza(char* string) {
@@ -26,8 +25,7 @@ char* copiaza(char* string) {
 	strcpy(nou, string);
 	return nou;
 }
-
-linieCAR* creareCAR(int idR, char* idZ, float grM, float nvR){
+linieCAR* creareCAR(int idR, char* idZ, float grM, float nvR) {
 	linieCAR* car = (linieCAR*)malloc(sizeof(linieCAR));
 	car->idRezervare = idR;
 	car->idZbor = copiaza(idZ);
@@ -37,35 +35,31 @@ linieCAR* creareCAR(int idR, char* idZ, float grM, float nvR){
 
 	return car;
 }
-
-int max(int a, int b){
-	return (a>b?a:b);
+int max(int a, int b) {
+	return (a > b ? a : b);
 }
-int H(NodAVL* rad){
+int H(NodAVL* rad) {
 	if (rad)	return 1 + max(H(rad->st), H(rad->dr));
 	else		return 0;
 }
-void gradEchilibru(NodAVL* rad){
+void gradEchilibru(NodAVL* rad) {
 	if (rad)	rad->ge = H(rad->dr) - H(rad->st);
 }
-
-NodAVL* rotatieSimplaStanga(NodAVL* pivot, NodAVL* fiuDR){
+NodAVL* rotatieSimplaStanga(NodAVL* pivot, NodAVL* fiuDR) {
 	pivot->dr = fiuDR->st;
 	gradEchilibru(pivot);
 	fiuDR->st = pivot;
 	gradEchilibru(fiuDR);
 	return fiuDR;
 }
-
-NodAVL* rotatieSimplaDreapta(NodAVL* pivot, NodAVL* fiuSt){
+NodAVL* rotatieSimplaDreapta(NodAVL* pivot, NodAVL* fiuSt) {
 	pivot->st = fiuSt->dr;
 	gradEchilibru(pivot);
 	fiuSt->dr = pivot;
 	gradEchilibru(fiuSt);
 	return fiuSt;
 }
-
-NodAVL* rotatieDublaStDr(NodAVL* pivot, NodAVL* fiuSt){
+NodAVL* rotatieDublaStDr(NodAVL* pivot, NodAVL* fiuSt) {
 	pivot->st = rotatieSimplaStanga(fiuSt, fiuSt->dr);
 	gradEchilibru(pivot);
 	fiuSt = pivot->st;
@@ -73,8 +67,7 @@ NodAVL* rotatieDublaStDr(NodAVL* pivot, NodAVL* fiuSt){
 	gradEchilibru(fiuSt);
 	return fiuSt;
 }
-
-NodAVL* rotatieDublaDrSt(NodAVL* pivot, NodAVL* fiuDr){
+NodAVL* rotatieDublaDrSt(NodAVL* pivot, NodAVL* fiuDr) {
 	pivot->dr = rotatieSimplaDreapta(fiuDr, fiuDr->st);
 	gradEchilibru(pivot);
 	fiuDr = pivot->dr;
@@ -82,18 +75,16 @@ NodAVL* rotatieDublaDrSt(NodAVL* pivot, NodAVL* fiuDr){
 	gradEchilibru(fiuDr);
 	return fiuDr;
 }
-
-void inserareAVL(NodAVL* &rad, linieCAR* carg){
-	if (rad)	{
+void inserareAVL(NodAVL* &rad, linieCAR* carg) {
+	if (rad) {
 		if (rad->car->idRezervare < carg->idRezervare)
 			inserareAVL(rad->dr, carg);
 		else
 			if (rad->car->idRezervare > carg->idRezervare)
 				inserareAVL(rad->st, carg);
 			else
-				printf("Elementul %d este deja prezent in arbore.\n",carg->idRezervare);
-	}
-	else{
+				printf("Elementul %d este deja prezent in arbore.\n", carg->idRezervare);
+	} else {
 		rad = (NodAVL*)malloc(sizeof(NodAVL));
 		rad->car = carg;
 		rad->dr = NULL;
@@ -107,8 +98,7 @@ void inserareAVL(NodAVL* &rad, linieCAR* carg){
 		else
 			rad = rotatieSimplaStanga(rad, rad->dr);
 	else
-		if (rad->ge == -2)
-		{
+		if (rad->ge == -2) {
 			if (rad->ge == 1)
 				rad = rotatieDublaStDr(rad, rad->st);
 			else
@@ -116,14 +106,10 @@ void inserareAVL(NodAVL* &rad, linieCAR* carg){
 		}
 
 }
-
-NodAVL* cautaElementCAR(int id)
-{
-	if (arbore != NULL)
-	{
+NodAVL* cautaElementCAR(int id) {
+	if (arbore != NULL) {
 		NodAVL* origine = arbore;
-		do
-		{
+		do {
 			if (arbore->car->idRezervare == id)
 				return arbore;
 			if (arbore->car->idRezervare > id)
@@ -132,8 +118,18 @@ NodAVL* cautaElementCAR(int id)
 		} while (arbore != origine);
 	}
 }
-void updateCAR(char* DATE)
-{
+void afisareCAR(linieCAR* car) {
+	printf("%d %s %f %f %f\n", car->idRezervare, car->idZbor, car->greutateMarfa, car->nivelRisc, car->costTotal);
+}
+void SRD(NodAVL* rad) {
+	if (rad) {
+		SRD(rad->st);
+		afisareCAR(rad->car);
+		SRD(rad->dr);
+	}
+}
+
+void updateCAR(char* DATE) {
 	char* dat = copiaza(DATE);
 	char* aux;
 	int id;
@@ -141,10 +137,10 @@ void updateCAR(char* DATE)
 	aux = strtok(dat, " \t");
 	id = atoi(aux);
 	NodAVL* elem = cautaElementCAR(id);
-	if (elem != nullptr){
+	if (elem != nullptr) {
 		linieCAR* linie = elem->car;
 		linie->idRezervare = id;
-		char* idZb = strtok(NULL," \t");
+		char* idZb = strtok(NULL, " \t");
 		free(linie->idZbor);
 		linie->idZbor = copiaza(idZb);
 		char* aux = strtok(NULL, " \t");
@@ -152,13 +148,11 @@ void updateCAR(char* DATE)
 		aux = strtok(NULL, " \t");
 		linie->nivelRisc = atof(aux);
 		linie->costTotal = linie->costTotal*linie->nivelRisc * 7;
-	}//echo("Date gestiune cargo actualizate!\n");
+		echo("Date gestiune cargo actualizate!\n");
+	} else echo("\nElementul nu a fost gasit!\n");
 }
- //else echo("\nElementul nu a fost gasit!\n");
 
-
-void addCAR(char* DATE)
-{
+void addCAR(char* DATE) {
 	char* dat = copiaza(DATE);
 	char* aux;
 	int idRezervare;
@@ -174,46 +168,30 @@ void addCAR(char* DATE)
 	//echo("Gestiune cargo adaugata!\n");
 }
 
-void afisareCAR(linieCAR* car){
-	printf("%d %s %f %f %f\n", car->idRezervare, car->idZbor, car->greutateMarfa, car->nivelRisc,car->costTotal);
-}
-void SRD(NodAVL* rad){
-	if (rad)
-	{
-		SRD(rad->st);
-		afisareCAR(rad->car);
-		SRD(rad->dr);
-	}
-}
-
-
-
-void citireFisierCAR(FILE* f, NodAVL* &arbore){
-	if (!f){
+void initializareCAR() {
+	marfuri = fopen("marfuri.txt", "r");
+	if (!marfuri) {
 		printf("Nu se poate deschide fisierul!\n");
-	}
-	else{
+	} else {
 		int idRezervare;
 		float nivelRisc;
 		char idZbor[100];
 		float greutateMarfa;
-		fscanf(f, "%d", &idRezervare);
-		while (!feof(f)){
-			fscanf(f, "%s", &idZbor);
-			fscanf(f, "%f", &greutateMarfa);
-			fscanf(f, "%f", &nivelRisc);
-			linieCAR* car = creareCAR(idRezervare,idZbor,greutateMarfa,nivelRisc);
+		fscanf(marfuri, "%d", &idRezervare);
+		while (!feof(marfuri)) {
+			fscanf(marfuri, "%s", &idZbor);
+			fscanf(marfuri, "%f", &greutateMarfa);
+			fscanf(marfuri, "%f", &nivelRisc);
+			linieCAR* car = creareCAR(idRezervare, idZbor, greutateMarfa, nivelRisc);
 			inserareAVL(arbore, car);
 
-			fscanf(f, "%d", &idRezervare);
+			fscanf(marfuri, "%d", &idRezervare);
 		}
 	}
 }
 
-
-void main(){
-	FILE* file = fopen("marfuri.txt","r");
-	citireFisierCAR(file,arbore);
+void main() {
+	initializareCAR();
 	addCAR("5 ana 3 5");
 	SRD(arbore);
 	printf("\n-----------");
